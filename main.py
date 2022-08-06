@@ -10,19 +10,21 @@ class RouteWidget(QWidget):
     def __init__(self):
         super().__init__()
         uic.loadUi("RouteWidget.ui", self)
+        print(f"{self.removeButton=}")
+
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-
         self.setWindowTitle("Simple App Audio Router")
+
         r1 = RouteWidget()
 
         # Set the central widget of the Window.
         main_widget = QWidget()
         vbox = QVBoxLayout()
-        vbox.addChildWidget(r1)
+        vbox.addWidget(r1)
         main_widget.setLayout(vbox)
         self.setCentralWidget(main_widget)
 
@@ -37,6 +39,7 @@ app.setStyle(AVAILABLE_THEMES[0])
 print(f"Current theme: {app.style().objectName()}")
 
 window = MainWindow()
+window.resize(950, 400)
 window.show()
 
 app.exec()
