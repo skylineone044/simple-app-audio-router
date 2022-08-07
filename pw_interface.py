@@ -13,6 +13,7 @@ def get_node_info(node_info_type: str) -> dict[int, str]:
         if line:
             node_connections[int(line.split()[0])] = " ".join(line.split()[1:])
 
+    print(f"{len(node_connections)} {node_info_type}s found")
     return node_connections
 
 def get_node_inputs() -> [dict[int, str]]:

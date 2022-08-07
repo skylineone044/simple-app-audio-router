@@ -5,6 +5,8 @@ from PyQt6 import uic
 
 import sys
 
+import pw_interface
+
 
 class RouteWidget(QWidget):
     def __init__(self):
@@ -43,4 +45,8 @@ window = MainWindow()
 window.resize(950, 400)
 window.show()
 
-app.exec()
+# app.exec()
+
+print(f"{pw_interface.get_node_links()=}")
+print(f"{pw_interface.get_node_inputs()=}")
+print(f"{pw_interface.get_node_outputs()=}")
