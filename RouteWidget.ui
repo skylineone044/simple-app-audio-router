@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
+ <class>Widget_Root</class>
  <widget class="QWidget" name="Widget_Root">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>904</width>
-    <height>105</height>
+    <height>92</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,36 +16,74 @@
   <widget class="QWidget" name="horizontalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>891</width>
-     <height>94</height>
+     <x>10</x>
+     <y>10</y>
+     <width>889</width>
+     <height>79</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QComboBox" name="NewAppComboBox"/>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QComboBox" name="newAppComboBox"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="refreshOutputListButton">
+          <property name="maximumSize">
+           <size>
+            <width>70</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>refresh</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
-       <widget class="QPushButton" name="AddMoreAppsButton">
+       <widget class="QPushButton" name="addMoreAppsButton">
+        <property name="maximumSize">
+         <size>
+          <width>200</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
-         <string>Add</string>
+         <string>Add app to this output</string>
         </property>
        </widget>
       </item>
      </layout>
     </item>
     <item>
-     <widget class="QLabel" name="SinkNameLabel">
+     <widget class="QLabel" name="sinkNameLabel">
+      <property name="maximumSize">
+       <size>
+        <width>300</width>
+        <height>16777215</height>
+       </size>
+      </property>
       <property name="text">
        <string>Sink Name</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="removeButton">
+     <widget class="QPushButton" name="removeSinkButton">
+      <property name="maximumSize">
+       <size>
+        <width>70</width>
+        <height>16777215</height>
+       </size>
+      </property>
       <property name="text">
        <string>Remove</string>
       </property>
