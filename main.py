@@ -43,7 +43,7 @@ class MainWindow(QMainWindow):
 
     def add_router_widget(self):
         self.routerWidgets.append(RouteWidget())
-        self.outputs_vbox.addWidget(self.routerWidgets[-1])
+        self.output_list.addWidget(self.routerWidgets[-1])
 
 app = QApplication(sys.argv)
 
