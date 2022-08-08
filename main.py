@@ -6,22 +6,28 @@ from PyQt6 import uic
 import sys
 
 import pw_interface
+import combobox
 
 
 class RouteWidget(QWidget):
     def __init__(self):
         super().__init__()
         uic.loadUi("RouteWidget.ui", self)
+        self.app_output_comboboxes = []
 
-        self.update_app_selection_combobox_items()
-        self.newAppComboBox.popupAboutToBeShown.connect(self.update_app_selection_combobox_items)
-
+        self.addMoreAppsButton.clicked.connect(self.add_app_output_combobox)
         self.removeSinkButton.clicked.connect(self.remove)
 
-    def update_app_selection_combobox_items(self):
-        self.newAppComboBox.clear()
-        self.newAppComboBox.addItems(
+    def update_app_selection_combobox_items(self, cb: combobox.ComboBox):
+        cb.clear()
+        cb.addItems(
             [" "] + [f"{item_id}: {item_name}" for item_id, item_name in pw_interface.get_node_outputs().items()])
+
+    def add_app_output_combobox(self):
+        self.app_output_comboboxes.append(combobox.ComboBox())
+        self.appOutputs.addWidget(self.app_output_comboboxes[-1])
+        self.app_output_comboboxes[-1].popupAboutToBeShown.connect(
+            lambda: self.update_app_selection_combobox_items(self.app_output_comboboxes[-1]))
 
     def remove(self):
         ## do not forget to close the sink for this widget as well

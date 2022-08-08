@@ -18,7 +18,7 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>2000</width>
+    <width>16777215</width>
     <height>16777215</height>
    </size>
   </property>
@@ -31,12 +31,12 @@
      <x>0</x>
      <y>10</y>
      <width>491</width>
-     <height>71</height>
+     <height>76</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="ComboBox" name="newAppComboBox"/>
+     <layout class="QVBoxLayout" name="appOutputs"/>
     </item>
     <item>
      <widget class="QPushButton" name="addMoreAppsButton">
@@ -92,13 +92,6 @@
    </property>
   </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>ComboBox</class>
-   <extends>QComboBox</extends>
-   <header>combobox.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
