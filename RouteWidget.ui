@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>904</width>
-    <height>92</height>
+    <width>905</width>
+    <height>94</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -77,10 +77,10 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="removeSinkButton">
+     <widget class="QPushButton" name="asdf">
       <property name="maximumSize">
        <size>
-        <width>70</width>
+        <width>60</width>
         <height>16777215</height>
        </size>
       </property>
