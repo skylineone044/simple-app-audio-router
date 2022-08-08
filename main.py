@@ -11,7 +11,6 @@ import pw_interface
 class RouteWidget(QWidget):
     def __init__(self):
         super().__init__()
-        print("creating new RouteWidget...")
         uic.loadUi("RouteWidget.ui", self)
 
         self.update_app_selection_combobox_items()
@@ -24,7 +23,6 @@ class RouteWidget(QWidget):
         self.removeSinkButton.clicked.connect(self.remove)
 
     def update_app_selection_combobox_items(self):
-        print("updating combobox items....")
         self.newAppComboBox.clear()
         self.newAppComboBox.addItems([" "] + [f"{item_id}: {item_name}" for item_id, item_name in pw_interface.get_node_outputs().items()])
 
@@ -37,27 +35,25 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Simple App Audio Router")
-        routerWidgets = []
+        self.routerWidgets = []
 
-        addMoreOutputsButton = QPushButton("Add another output")
-        addMoreOutputsButton.setFixedWidth(200)
-        addMoreOutputsButton.clicked.connect(self.add_router_widget)
+        self.addMoreOutputsButton = QPushButton("Add another output")
+        self.addMoreOutputsButton.setFixedWidth(200)
+        self.addMoreOutputsButton.clicked.connect(self.add_router_widget)
 
         # Set the central widget of the Window.
-        main_widget = QWidget()
-        vbox = QVBoxLayout()
-        main_widget.setLayout(vbox)
+        self.main_widget = QWidget()
+        self.vbox = QVBoxLayout()
+        self.outputs_vbox = QVBoxLayout()
+        self.vbox.addLayout(self.outputs_vbox)
+        self.main_widget.setLayout(self.vbox)
 
-
-        vbox.addWidget(addMoreOutputsButton)
-        self.setCentralWidget(main_widget)
+        self.vbox.addWidget(self.addMoreOutputsButton)
+        self.setCentralWidget(self.main_widget)
 
     def add_router_widget(self):
-        print("adding new router...")
         self.routerWidgets.append(RouteWidget())
-        print(self.routerWidgets)
-        print("adding new router to display...")
-        self.vbox.addWidget(self.routerWidgets[-1])
+        self.outputs_vbox.addWidget(self.routerWidgets[-1])
 
 app = QApplication(sys.argv)
 
