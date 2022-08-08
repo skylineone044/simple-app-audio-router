@@ -1,7 +1,7 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QVBoxLayout
+from PyQt6.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QVBoxLayout, QSizePolicy
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice
-from PyQt6 import uic
+from PyQt6 import QtWidgets, uic
 
 import sys
 
@@ -24,10 +24,15 @@ class RouteWidget(QWidget):
             [" "] + [f"{item_id}: {item_name}" for item_id, item_name in pw_interface.get_node_outputs().items()])
 
     def add_app_output_combobox(self):
-        self.app_output_comboboxes.append(combobox.ComboBox())
-        self.appOutputs.addWidget(self.app_output_comboboxes[-1])
-        self.app_output_comboboxes[-1].popupAboutToBeShown.connect(
-            lambda: self.update_app_selection_combobox_items(self.app_output_comboboxes[-1]))
+        cb = combobox.ComboBox()
+        # print("sp")
+        # cb.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        # print("sp done")
+        self.appOutputs.addWidget(cb)
+        cb.popupAboutToBeShown.connect(
+            lambda: self.update_app_selection_combobox_items(cb))
+        self.app_output_comboboxes.append(cb)
+
 
     def remove(self):
         ## do not forget to close the sink for this widget as well

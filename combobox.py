@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QComboBox
-from PyQt6 import QtCore
+from PyQt6.QtWidgets import QComboBox, QSizePolicy
+from PyQt6 import QtCore, QtWidgets
 
 
 class ComboBox(QComboBox):
