@@ -36,24 +36,7 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
-       <widget class="ComboBox" name="newAppComboBox"/>
-      </item>
-      <item>
-       <widget class="QPushButton" name="refreshOutputListButton">
-        <property name="maximumSize">
-         <size>
-          <width>70</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>refresh</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <widget class="ComboBox" name="newAppComboBox"/>
     </item>
     <item>
      <widget class="QPushButton" name="addMoreAppsButton">
@@ -113,7 +96,7 @@
   <customwidget>
    <class>ComboBox</class>
    <extends>QComboBox</extends>
-   <header>widgets.h</header>
+   <header>combobox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

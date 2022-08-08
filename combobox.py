@@ -1,9 +1,9 @@
-from PyQt6.QtWidgets import QWidget, QComboBox
-from PyQt6 import uic, QtCore
+from PyQt6.QtWidgets import QComboBox
+from PyQt6 import QtCore
 
 
 class ComboBox(QComboBox):
-    popupAboutToBeShown = QtCore.pyqtSignal()
+    popupAboutToBeShown = QtCore.pyqtSignal(name="popupAboutToBeShown")
 
     def __init__(self, parent=None):
         super().__init__(parent)

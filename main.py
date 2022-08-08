@@ -14,11 +14,7 @@ class RouteWidget(QWidget):
         uic.loadUi("RouteWidget.ui", self)
 
         self.update_app_selection_combobox_items()
-
-        # refresh the list of available outputs after the user selects one from the list.
-        # It would be best to refresh the items when the user opens the combobox, but I have not found an easy way to do so
-        # self.newAppComboBox.activated.connect(self.update_app_selection_combobox_items)
-        self.refreshOutputListButton.clicked.connect(self.update_app_selection_combobox_items)
+        self.newAppComboBox.popupAboutToBeShown.connect(self.update_app_selection_combobox_items)
 
         self.removeSinkButton.clicked.connect(self.remove)
 
