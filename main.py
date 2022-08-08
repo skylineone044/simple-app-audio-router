@@ -24,7 +24,8 @@ class RouteWidget(QWidget):
 
     def update_app_selection_combobox_items(self):
         self.newAppComboBox.clear()
-        self.newAppComboBox.addItems([" "] + [f"{item_id}: {item_name}" for item_id, item_name in pw_interface.get_node_outputs().items()])
+        self.newAppComboBox.addItems(
+            [" "] + [f"{item_id}: {item_name}" for item_id, item_name in pw_interface.get_node_outputs().items()])
 
     def remove(self):
         ## do not forget to close the sink for this widget as well
@@ -45,6 +46,7 @@ class MainWindow(QMainWindow):
         self.routerWidgets.append(RouteWidget())
         self.output_list.addWidget(self.routerWidgets[-1])
 
+
 app = QApplication(sys.argv)
 
 from PyQt6.QtWidgets import QStyleFactory
@@ -59,4 +61,3 @@ window = MainWindow()
 window.show()
 
 app.exec()
-
