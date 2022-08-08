@@ -20,7 +20,7 @@ class RouteWidget(QWidget):
         # self.newAppComboBox.activated.connect(self.update_app_selection_combobox_items)
         self.refreshOutputListButton.clicked.connect(self.update_app_selection_combobox_items)
 
-        # self.removeSinkButton.clicked.connect(self.remove)
+        self.removeSinkButton.clicked.connect(self.remove)
 
     def update_app_selection_combobox_items(self):
         self.newAppComboBox.clear()
