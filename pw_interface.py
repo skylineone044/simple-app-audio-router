@@ -63,6 +63,7 @@ class VirtualSink():
         self.process.terminate()
         print(f"Removed Virtual Sink: {self.name}")
 
+
 class VirtualSinkManager():
     def __init__(self):
         self.virtual_sink_processes: [VirtualSink] = []
@@ -73,8 +74,10 @@ class VirtualSinkManager():
         return vs
 
     def remove(self, vs: VirtualSink):
+        self.virtual_sink_processes.remove(vs)
         vs._remove()
 
     def terminate_all(self):
         for proc in self.virtual_sink_processes:
             proc._remove()
+        self.virtual_sink_processes = []
