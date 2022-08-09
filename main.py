@@ -93,8 +93,8 @@ from PyQt6.QtWidgets import QStyleFactory
 AVAILABLE_THEMES = QStyleFactory.keys()
 print(f"Available themes: {AVAILABLE_THEMES}")
 app.setStyle(AVAILABLE_THEMES[0])
-app.setStyleSheet("background-color: rgba(0, 0, 0, 0)")
 print(f"Current theme: {app.style().objectName()}")
+app.setStyleSheet("background-color: rgba(0, 0, 0, 0)")
 
 window = MainWindow()
 window.show()
