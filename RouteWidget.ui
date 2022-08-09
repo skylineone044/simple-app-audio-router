@@ -25,50 +25,6 @@
   <property name="windowTitle">
    <string>Widget Root</string>
   </property>
-  <widget class="QWidget" name="layoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>10</y>
-     <width>491</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <property name="sizeConstraint">
-     <enum>QLayout::SetMinimumSize</enum>
-    </property>
-    <item>
-     <layout class="QVBoxLayout" name="appOutputs">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetMinimumSize</enum>
-      </property>
-     </layout>
-    </item>
-    <item>
-     <widget class="QPushButton" name="addMoreAppsButton">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="layoutDirection">
-       <enum>Qt::LeftToRight</enum>
-      </property>
-      <property name="text">
-       <string>Add app to this output</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
   <widget class="QPushButton" name="removeSinkButton">
    <property name="geometry">
     <rect>
@@ -98,9 +54,9 @@
    <property name="geometry">
     <rect>
      <x>500</x>
-     <y>10</y>
+     <y>20</y>
      <width>300</width>
-     <height>31</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -118,6 +74,53 @@
    <property name="text">
     <string>Sink Name</string>
    </property>
+  </widget>
+  <widget class="QPushButton" name="add_more_apps_btn">
+   <property name="geometry">
+    <rect>
+     <x>500</x>
+     <y>50</y>
+     <width>90</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>90</width>
+     <height>16777215</height>
+    </size>
+   </property>
+   <property name="text">
+    <string>Add app</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="app_list" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>10</y>
+     <width>477</width>
+     <height>67</height>
+    </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QVBoxLayout" name="app_list_vbox">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+     </layout>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>
