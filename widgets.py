@@ -9,13 +9,13 @@ class ComboBox(QComboBox):
 
     def __init__(self, scrollWidget=None, *args, **kwargs):
         super(ComboBox, self).__init__(*args, **kwargs)
-        self.scroll_with_stron_focus = False
+        self.scroll_with_strong_focus = False
 
         self.scrollWidget = scrollWidget
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
 
     def wheelEvent(self, *args, **kwargs):
-        if self.hasFocus() and self.scroll_with_stron_focus:
+        if self.hasFocus() and self.scroll_with_strong_focus:
             return QComboBox.wheelEvent(self, *args, **kwargs)
         else:
             return self.scrollWidget.wheelEvent(*args, **kwargs)
