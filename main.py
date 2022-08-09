@@ -18,7 +18,7 @@ class MainWindow(QMainWindow):
         self.addMoreOutputsButton.clicked.connect(self.add_router_widget)
 
     def add_router_widget(self):
-        self.routerWidgets.append(widgets.RouteWidget())
+        self.routerWidgets.append(widgets.RouteWidget(self.scrollArea))
         self.output_list.addWidget(self.routerWidgets[-1], alignment=QtCore.Qt.AlignmentFlag.AlignTop)
 
 

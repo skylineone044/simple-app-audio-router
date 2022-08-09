@@ -7,8 +7,18 @@ import pw_interface
 class ComboBox(QComboBox):
     popupAboutToBeShown = QtCore.pyqtSignal(name="popupAboutToBeShown")
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, scrollWidget=None, *args, **kwargs):
+        super(ComboBox, self).__init__(*args, **kwargs)
+        self.scroll_with_stron_focus = False
+
+        self.scrollWidget = scrollWidget
+        self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
+
+    def wheelEvent(self, *args, **kwargs):
+        if self.hasFocus() and self.scroll_with_stron_focus:
+            return QComboBox.wheelEvent(self, *args, **kwargs)
+        else:
+            return self.scrollWidget.wheelEvent(*args, **kwargs)
 
     def showPopup(self):
         self.popupAboutToBeShown.emit()
@@ -17,9 +27,11 @@ class ComboBox(QComboBox):
 
 
 class RouteWidget(QWidget):
-    def __init__(self):
+    def __init__(self, scrollWidget=None):
         super().__init__()
         uic.loadUi("RouteWidget.ui", self)
+        self.parent_scrollWidget = scrollWidget
+
         self.app_combobox_height = 32
         self.app_combobox_vbox_padding = 10
 
@@ -56,7 +68,7 @@ class RouteWidget(QWidget):
         hbox.setLayout(hbox_layout)
         hbox.setFixedHeight(self.app_combobox_height)
 
-        cb = ComboBox()
+        cb = ComboBox(scrollWidget=self.parent_scrollWidget)
         cb.setFixedHeight(self.app_combobox_height - 7)
         cb.popupAboutToBeShown.connect(
             lambda: self.update_app_selection_combobox_items(cb))
