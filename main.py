@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QVBoxLayout, QSizePolicy
+from PyQt6.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QFrame
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice
 from PyQt6 import QtWidgets, uic
@@ -26,15 +26,25 @@ class RouteWidget(QWidget):
             [" "] + [f"{item_id}: {item_name}" for item_id, item_name in pw_interface.get_node_outputs().items()])
 
     def add_app_output_combobox(self):
+        hbox = QFrame()
+        hbox_layout = QHBoxLayout()
+        hbox.setLayout(hbox_layout)
         cb = combobox.ComboBox()
-        cb.setFixedHeight(25)
-        self.appOutputs.addWidget(cb)
-        print(f"{self.verticalLayout.sizeHint()}")
+        cb.setFixedHeight(24)
+        remove_btn = QPushButton("Remove")
+        remove_btn.setFixedHeight(24)
+        remove_btn.setFixedWidth(60)
+        hbox.setFixedHeight(30)
+
+        hbox_layout.addWidget(cb)
+        hbox_layout.addWidget(remove_btn)
+
+        self.appOutputs.addWidget(hbox)
         self.setMinimumHeight(max(self.verticalLayout.sizeHint().height() + 50, 120))
 
         cb.popupAboutToBeShown.connect(
             lambda: self.update_app_selection_combobox_items(cb))
-        self.app_output_comboboxes.append(cb)
+        self.app_output_comboboxes.append(hbox)
 
 
     def remove(self):
