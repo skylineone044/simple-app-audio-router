@@ -18,6 +18,8 @@ class RouteWidget(QWidget):
         self.addMoreAppsButton.clicked.connect(self.add_app_output_combobox)
         self.removeSinkButton.clicked.connect(self.remove)
 
+        self.add_app_output_combobox()
+
     def update_app_selection_combobox_items(self, cb: combobox.ComboBox):
         cb.clear()
         cb.addItems(
@@ -25,10 +27,11 @@ class RouteWidget(QWidget):
 
     def add_app_output_combobox(self):
         cb = combobox.ComboBox()
-        # print("sp")
-        # cb.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        # print("sp done")
+        cb.setFixedHeight(25)
         self.appOutputs.addWidget(cb)
+        print(f"{self.verticalLayout.sizeHint()}")
+        self.setMinimumHeight(max(self.verticalLayout.sizeHint().height() + 50, 120))
+
         cb.popupAboutToBeShown.connect(
             lambda: self.update_app_selection_combobox_items(cb))
         self.app_output_comboboxes.append(cb)

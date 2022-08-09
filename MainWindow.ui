@@ -31,7 +31,11 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <layout class="QVBoxLayout" name="output_list"/>
+         <layout class="QVBoxLayout" name="output_list">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMinimumSize</enum>
+          </property>
+         </layout>
         </item>
         <item>
          <spacer name="verticalSpacer">
