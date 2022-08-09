@@ -1,10 +1,8 @@
-from PyQt6.QtWidgets import QApplication, QMainWindow
-from PyQt6 import uic, QtCore
-
-import sys
 import json
+import sys
 
-import time
+from PyQt6 import uic, QtCore
+from PyQt6.QtWidgets import QApplication, QMainWindow
 
 import pw_interface
 import widgets
@@ -41,9 +39,10 @@ print("Inputs: " + json.dumps(pw_interface.get_node_inputs(), indent=4))
 
 VSM = pw_interface.VirtualSinkManager()
 
-window = MainWindow()
-window.show()
+try:
+    window = MainWindow()
+    window.show()
 
-app.exec()
-
-VSM.terminate_all()
+    app.exec()
+finally:
+    VSM.terminate_all()

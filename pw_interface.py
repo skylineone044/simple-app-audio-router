@@ -1,5 +1,5 @@
-import subprocess
 import shlex
+import subprocess
 
 
 def get_node_info(node_info_type: str) -> dict[int, str]:

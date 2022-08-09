@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QComboBox, QWidget, QHBoxLayout, QFrame, QPushButton
 from PyQt6 import uic, QtCore
+from PyQt6.QtWidgets import QComboBox, QWidget, QHBoxLayout, QFrame, QPushButton
 
 import pw_interface
 
