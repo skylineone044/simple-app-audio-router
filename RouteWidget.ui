@@ -28,7 +28,7 @@
   <widget class="QPushButton" name="removeSinkButton">
    <property name="geometry">
     <rect>
-     <x>730</x>
+     <x>745</x>
      <y>50</y>
      <width>60</width>
      <height>26</height>
