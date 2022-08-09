@@ -59,6 +59,22 @@ class VirtualSink():
         self.name = f"loopback-{self.process.pid}-18"
         print(f"Created Virtual Sink: {self.name}")
 
-    def remove(self):
+    def _remove(self):
         self.process.terminate()
         print(f"Removed Virtual Sink: {self.name}")
+
+class VirtualSinkManager():
+    def __init__(self):
+        self.virtual_sink_processes: [VirtualSink] = []
+
+    def create_virtual_sink(self):
+        vs = VirtualSink()
+        self.virtual_sink_processes.append(vs)
+        return vs
+
+    def remove(self, vs: VirtualSink):
+        vs._remove()
+
+    def terminate_all(self):
+        for proc in self.virtual_sink_processes:
+            proc._remove()

@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
         self.addMoreOutputsButton.clicked.connect(self.add_router_widget)
 
     def add_router_widget(self):
-        self.routerWidgets.append(widgets.RouteWidget(self.scrollArea))
+        self.routerWidgets.append(widgets.RouteWidget(self.scrollArea, VSM))
         self.output_list.addWidget(self.routerWidgets[-1], alignment=QtCore.Qt.AlignmentFlag.AlignTop)
 
 
@@ -39,7 +39,11 @@ print("Outputs: " + json.dumps(pw_interface.get_node_outputs(), indent=4))
 print("Inputs: " + json.dumps(pw_interface.get_node_inputs(), indent=4))
 # print(f"{pw_interface.get_node_links()=}")
 
+VSM = pw_interface.VirtualSinkManager()
+
 window = MainWindow()
 window.show()
 
 app.exec()
+
+VSM.terminate_all()
