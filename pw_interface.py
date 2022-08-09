@@ -1,12 +1,13 @@
-import os
 import subprocess
+import shlex
+
 
 def get_node_info(node_info_type: str) -> dict[int, str]:
     valid_node_info_types = ("input", "output")
     if node_info_type not in valid_node_info_types:
         raise ValueError(f"Invalid node_info_type '{node_info_type}': must be one of {valid_node_info_types}")
 
-    info_lines = subprocess.check_output(["pw-link", f"--{node_info_type}", "--id"]).decode().split("\n")
+    info_lines = subprocess.check_output(shlex.split(f"/usr/bin/pw-link --{node_info_type} --id")).decode().split("\n")
 
     node_connections = {}
     for line in info_lines:
@@ -16,14 +17,17 @@ def get_node_info(node_info_type: str) -> dict[int, str]:
     print(f"{len(node_connections)} {node_info_type}s found")
     return node_connections
 
+
 def get_node_inputs() -> [dict[int, str]]:
     return get_node_info("input")
+
 
 def get_node_outputs() -> [dict[int, str]]:
     return get_node_info("output")
 
+
 def get_node_links() -> [dict[int, dict[str, int]]]:
-    info_lines = subprocess.check_output(["pw-link", f"--links", "--id"]).decode().split("\n")
+    info_lines = subprocess.check_output(shlex.split(f"/usr/bin/pw-link --links --id")).decode().split("\n")
 
     node_connections = {}
     endpoint0_id = None
@@ -45,3 +49,16 @@ def get_node_links() -> [dict[int, dict[str, int]]]:
 
     print(f"{len(node_connections)} connections found")
     return node_connections
+
+
+class VirtualSink():
+    def __init__(self):
+        self.process = subprocess.Popen(
+            shlex.split(
+                "/usr/bin/pw-loopback -m '[ FL FR]' --capture-props='media.class=Audio/Sink node.name=test-sink'"))
+        self.name = f"loopback-{self.process.pid}-18"
+        print(f"Created Virtual Sink: {self.name}")
+
+    def remove(self):
+        self.process.terminate()
+        print(f"Removed Virtual Sink: {self.name}")

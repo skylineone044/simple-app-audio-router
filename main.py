@@ -2,6 +2,9 @@ from PyQt6.QtWidgets import QApplication, QMainWindow
 from PyQt6 import uic, QtCore
 
 import sys
+import json
+
+import time
 
 import pw_interface
 import widgets
@@ -31,6 +34,10 @@ print(f"Available themes: {AVAILABLE_THEMES}")
 app.setStyle(AVAILABLE_THEMES[0])
 print(f"Current theme: {app.style().objectName()}")
 app.setStyleSheet("background-color: rgba(0, 0, 0, 0)")
+
+print("Outputs: " + json.dumps(pw_interface.get_node_outputs(), indent=4))
+print("Inputs: " + json.dumps(pw_interface.get_node_inputs(), indent=4))
+# print(f"{pw_interface.get_node_links()=}")
 
 window = MainWindow()
 window.show()
