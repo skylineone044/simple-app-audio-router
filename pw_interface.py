@@ -97,20 +97,20 @@ class NodeManager():
         for node_id in get_object_ids("Node", self.raw_object_data_rjson):
             self.nodes[node_id] = Node(get_object_info(node_id, self.raw_object_data_rjson))
         node_end = time.time()
-        print(f"node itme: {node_end - node_start}")
+        print(f"parsed {len(self.nodes)} nodes in: {round(node_end - node_start, 4)}s")
 
         port_start = time.time()
         for port_id in get_object_ids("Port", self.raw_object_data_rjson):
             self.ports[port_id] = Port(get_object_info(port_id, self.raw_object_data_rjson))
             self.nodes[self.ports[port_id].parent_node_id]._populate_ports(self.ports[port_id])
         port_end = time.time()
-        print(f"port itme: {port_end - port_start}")
+        print(f"parsed {len(self.ports)} ports in: {round(port_end - port_start, 4)}s")
 
         links_start = time.time()
         for link_id in get_object_ids("Link", self.raw_object_data_rjson):
             self.links[link_id] = Link(get_object_info(link_id, self.raw_object_data_rjson))
         links_end = time.time()
-        print(f"links itme: {links_end - links_start}")
+        print(f"parsed {len(self.links)} links in: {round(links_end - links_start, 4)}s")
 
 
 def to_python_type(string_input: str):
