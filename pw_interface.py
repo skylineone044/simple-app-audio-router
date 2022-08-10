@@ -17,7 +17,7 @@ def pw_info_all():
 def get_object_ids(object_type: str = "All"):
     object_type = object_type.capitalize()
     accepted_object_types = (
-    "Core", "Client", "Module", "Node", "Port", "Link", "Device", "Factory", "Session", "Endpoint", "All")
+        "Core", "Client", "Module", "Node", "Port", "Link", "Device", "Factory", "Session", "Endpoint", "All")
     if object_type not in accepted_object_types:
         raise ValueError(f"Invalid object type: {object_type}. Must be one of: {accepted_object_types}")
 
@@ -28,6 +28,31 @@ def get_object_ids(object_type: str = "All"):
                                  input=all_objects_raw, stdout=subprocess.PIPE).stdout.decode("utf-8")
     obj_ids = [int(line.split()[1][:-1]) for line in obj_ids_raw.split("\n") if line]
     return obj_ids
+
+
+def get_port_links() -> [dict[int, dict[str, int]]]:
+    info_lines = subprocess.check_output(shlex.split(f"/usr/bin/pw-link --links --id")).decode().split("\n")
+
+    links = {}
+    port_0_id = None
+
+    for line in info_lines:
+        if line:
+            if "|->" in line:
+                link_id = line.split()[0]
+                port_to_id = line.split("|->")[1].split()[0]
+                links[link_id] = {"from": port_0_id, "to": port_to_id}
+
+            ## turns out, pw-link --links --id gives the links twice, one in each |->, |<- direction, so it is enough to check then in one direction
+            # elif "|<-" in line:
+            #     link_id = line.split()[0]
+            #     endpoint_from_id = line.split("|<-")[1].split()[0]
+            #     links[link_id] = {"from": endpoint_from_id, "to": port_0_id}
+            else:
+                port_0_id = line.split()[0]
+
+    print(f"{len(links)} connections found")
+    return links
 
 
 class VirtualSink():
