@@ -33,50 +33,54 @@ def to_python_type(string_input: str):
                 return string_input
 
 
-def get_port_info(port_id: int):
-    node_port_raw: [str] = subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info {port_id}")).decode(
+def get_object_info(port_id: int):
+    object_data_raw_rjson: [str] = subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info {port_id}")).decode(
         "utf-8").split("\n")
-    port = {}
-    props = False
-    for line in node_port_raw:
-        if line:
-            if not props: # search for the object top level attributes
-                if line.endswith("properties:"):
-                    props = True
-                    continue
-                # match object root attribute names
-                # match on each line from the beginning to the first ":", but also excluding the whitespace
-                # and any one "*" char at the beginnign of the line
-                key_search = re.search("^(?:\**\s+)([a-zA-Z ]+)(?:: )", line)
-                key = key_search.group(1)
-
-                # match object root attribute values
-                # match from the first ": " to the end of the line, but exclude the ": "
-                value_search = re.search("(?:: )(.+$)", line)
-                value = value_search.group(1)
-
-                port[key] = to_python_type(value)
-            else: # search for the properties of the object
+    object = {}
+    started_properties_section = False
+    for line in object_data_raw_rjson:
+        try:
+            if line:
                 if "params: " in line: # ignore object params, I do not need them
                     break
-                if not "properties" in port:
-                    port["properties"] = {}
-                # match object property names
-                # match on each line from the beginning to the first " = " while excluding the "*" and whitespace
-                # at the beginning, and the " = "
-                key_search = re.search("^(?:\**\s+)([a-zA-Z\.\-\_]+)(?: = )", line)
-                key = key_search.group(1)
+                if not started_properties_section: # search for the object top level attributes
+                    if line.endswith("properties:"):
+                        started_properties_section = True
+                        continue
+                    # match object root attribute names
+                    # match on each line from the beginning to the first ":", but also excluding the whitespace
+                    # and any one "*" char at the beginnign of the line
+                    key_search = re.search("^(?:\**\s+)([a-zA-Z0-9 \.\-\_]+)(?:: )", line)
+                    key = key_search.group(1)
 
-                # match the object property values
-                # match from the first " = " to the end of the line, while excluding the " = "
-                value_search = re.search("(?: = )(.+$)", line)
-                value = value_search.group(1)
+                    # match object root attribute values
+                    # match from the first ": " to the end of the line, but exclude the ": "
+                    value_search = re.search("(?:: )(.+$)", line)
+                    value = value_search.group(1)
 
-                port["properties"][key] = to_python_type(value)
+                    object[key] = to_python_type(value)
+                else: # search for the properties of the object
+                    if not "properties" in object:
+                        object["properties"] = {}
+                    # match object property names
+                    # match on each line from the beginning to the first " = " while excluding the "*" and whitespace
+                    # at the beginning, and the " = "
+                    key_search = re.search("^(?:\**\s+)([a-zA-Z0-9\.\-\_]+)(?: = )", line)
+                    key = key_search.group(1)
+
+                    # match the object property values
+                    # match from the first " = " to the end of the line, while excluding the " = "
+                    value_search = re.search("(?: = )(.+$)", line)
+                    value = value_search.group(1)
+
+                    object["properties"][key] = to_python_type(value)
+        except Exception as e:
+            print(f"Unrecognised pattern, skipping: {line}")
+            # print(e)
 
 
 
-    print(json.dumps(port, indent=4))
+    print(json.dumps(object, indent=4))
 
 
 def get_object_ids(object_type: str = "All"):
