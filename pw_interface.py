@@ -16,6 +16,7 @@ def pw_info_all():
 
 
 def to_python_type(string_input: str):
+    string_input = string_input.strip('"')
     if string_input == "true":
         return True
     elif string_input == "false":
@@ -46,30 +47,32 @@ def get_port_info(port_id: int):
                 # match object root attribute names
                 # match on each line from the beginning to the first ":", but also excluding the whitespace
                 # and any one "*" char at the beginnign of the line
-                key_search = re.search("^(?:\**\s+)([a-zA-z ]+)(?:: )", line)
+                key_search = re.search("^(?:\**\s+)([a-zA-Z ]+)(?:: )", line)
                 key = key_search.group(1)
 
                 # match object root attribute values
                 # match from the first ": " to the end of the line, but exclude the ": "
                 value_search = re.search("(?:: )(.+$)", line)
                 value = value_search.group(1)
-                print(f"{key=}")
-                print(f"{value=}")
+
+                port[key] = to_python_type(value)
             else: # search for the properties of the object
                 if "params: " in line: # ignore object params, I do not need them
                     break
+                if not "properties" in port:
+                    port["properties"] = {}
                 # match object property names
                 # match on each line from the beginning to the first " = " while excluding the "*" and whitespace
                 # at the beginning, and the " = "
-                key_search = re.search("^(?:\**\s+)([a-zA-z\.\-\_]+)(?: = )", line)
+                key_search = re.search("^(?:\**\s+)([a-zA-Z\.\-\_]+)(?: = )", line)
                 key = key_search.group(1)
 
                 # match the object property values
                 # match from the first " = " to the end of the line, while excluding the " = "
                 value_search = re.search("(?: = )(.+$)", line)
                 value = value_search.group(1)
-                print(f"{key=}")
-                print(f"{value=}")
+
+                port["properties"][key] = to_python_type(value)
 
 
 
