@@ -41,9 +41,9 @@ def get_object_info(port_id: int):
     for line in object_data_raw_rjson:
         try:
             if line:
-                if "params: " in line: # ignore object params, I do not need them
+                if "params: " in line:  # ignore object params, I do not need them
                     break
-                if not started_properties_section: # search for the object top level attributes
+                if not started_properties_section:  # search for the object top level attributes
                     if line.endswith("properties:"):
                         started_properties_section = True
                         continue
@@ -59,7 +59,7 @@ def get_object_info(port_id: int):
                     value = value_search.group(1)
 
                     object[key] = to_python_type(value)
-                else: # search for the properties of the object
+                else:  # search for the properties of the object
                     if not "properties" in object:
                         object["properties"] = {}
                     # match object property names
@@ -75,10 +75,7 @@ def get_object_info(port_id: int):
 
                     object["properties"][key] = to_python_type(value)
         except Exception as e:
-            print(f"Unrecognised pattern, skipping: {line}")
-            # print(e)
-
-
+            print(f"Unrecognised pattern, skipping: {line}")  # print(e)
 
     print(json.dumps(object, indent=4))
 
