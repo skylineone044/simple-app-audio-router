@@ -36,6 +36,10 @@ for id, node in NM.nodes.items():
     print(node)
     pass
 
+for id, link in NM.links.items():
+    print(link)
+    pass
+
 
 exit(0)
 

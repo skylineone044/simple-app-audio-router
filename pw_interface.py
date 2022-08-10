@@ -52,10 +52,28 @@ class Node():
         return self.toJSON()
 
 
+class Link():
+    def __init__(self, json_data: dict[str, str | int | dict[str, str | int]]):
+        self.id = json_data["id"]
+        self.output_node_id = json_data["output-node-id"]
+        self.output_port_id = json_data["output-port-id"]
+        self.input_node_id = json_data["input-node-id"]
+        self.input_port_id = json_data["input-port-id"]
+
+        # self.json_data = json_data
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, indent=4)
+
+    def __str__(self):
+        return self.toJSON()
+
+
 def get_all_data():
     delim = "\tid: "
     raw_object_data_rjson = dict([(int(item.split("\n")[0]), delim + item) for item in
-        subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info all")).decode("utf-8").split(delim) if item])
+                                  subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info all")).decode(
+                                      "utf-8").split(delim) if item])
     # print(raw_object_data_rjson)
     return raw_object_data_rjson
 
@@ -66,7 +84,7 @@ class NodeManager():
         # print(self.raw_object_data_rjson)
         self.ports: dict[int, Port] = {}
         self.nodes: dict[int, Node] = {}
-        self.links: dict[int, None] = {}
+        self.links: dict[int, Link] = {}
 
         self.update()
 
@@ -87,6 +105,12 @@ class NodeManager():
             self.nodes[self.ports[port_id].parent_node_id]._populate_ports(self.ports[port_id])
         port_end = time.time()
         print(f"port itme: {port_end - port_start}")
+
+        links_start = time.time()
+        for link_id in get_object_ids("Link", self.raw_object_data_rjson):
+            self.links[link_id] = Link(get_object_info(link_id, self.raw_object_data_rjson))
+        links_end = time.time()
+        print(f"links itme: {links_end - links_start}")
 
 
 def to_python_type(string_input: str):
@@ -111,8 +135,9 @@ def get_object_info(object_id: int, object_data_raw_rjson: dict[int, str] = None
     if object_data_raw_rjson is None:
         object_data_raw_rjson: dict[int, str] = {
             object_id: subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info {object_id}")).decode("utf-8")}
-    object = {}
+    pw_object = {}
     started_properties_section = False
+    inside_format_section = False
 
     root_attribute_matcher = re.compile("^(?:\**\s+)([a-zA-Z0-9 \.\-\_]+)(?:: )(.+$)")
     property_matcher = re.compile("^(?:\**\s+)([a-zA-Z0-9\.\-\_]+)(?: = )(.+$)")
@@ -121,34 +146,44 @@ def get_object_info(object_id: int, object_data_raw_rjson: dict[int, str] = None
     for line in object_data_raw_rjson[object_id].split("\n"):
         if line:
             try:
-                if "params: " in line:  # ignore object params, I do not need them
+                if "params: " in line:  # ignore pw_object params, I do not need them
                     break
-                if not started_properties_section:  # search for the object top level attributes
+                if not inside_format_section:
+                    if line.endswith("format:"):
+                        inside_format_section = True
+                        continue
+                    if not started_properties_section:  # search for the pw_object top level attributes
+                        if line.endswith("properties:"):
+                            started_properties_section = True
+                            inside_format_section = False
+                            continue
+                        # match pw_object root attributes
+                        # match group 1: matches on each line from the beginning to the first ":", but also excluding the
+                        # whitespace and any one "*" char at the beginning of the line
+                        # match group 2: matches the part between ": " and the end of the line
+                        key_value_search = root_attribute_matcher.search(line)
+                        pw_object[key_value_search.group(1)] = to_python_type(key_value_search.group(2))
+
+                    else:  # search for the properties of the pw_object
+                        if not "properties" in pw_object:
+                            pw_object["properties"] = {}
+                        # match pw_object properties
+                        # match group 1: matches on each line from the beginning to the first " = " while excluding the "*"
+                        # and whitespace at the beginning
+                        # match group 2: matches the part between " = " and the end of the line
+                        key_value_search = property_matcher.search(line)
+                        pw_object["properties"][key_value_search.group(1)] = to_python_type(key_value_search.group(2))
+                else:
                     if line.endswith("properties:"):
                         started_properties_section = True
+                        inside_format_section = False
                         continue
-                    # match object root attributes
-                    # match group 1: matches on each line from the beginning to the first ":", but also excluding the
-                    # whitespace and any one "*" char at the beginning of the line
-                    # match group 2: matches the part between ": " and the end of the line
-                    key_value_search = root_attribute_matcher.search(line)
-                    object[key_value_search.group(1)] = to_python_type(key_value_search.group(2))
-
-                else:  # search for the properties of the object
-                    if not "properties" in object:
-                        object["properties"] = {}
-                    # match object properties
-                    # match group 1: matches on each line from the beginning to the first " = " while excluding the "*"
-                    # and whitespace at the beginning
-                    # match group 2: matches the part between " = " and the end of the line
-                    key_value_search = property_matcher.search(line)
-                    object["properties"][key_value_search.group(1)] = to_python_type(key_value_search.group(2))
             except Exception as e:
                 print(f"Unrecognised pattern, skipping: {line}")  # print(e)
     process_end = time.time()
     # print(f"process: {process_end - process_start}")
 
-    return object
+    return pw_object
 
 
 def get_object_ids(object_type: str = "All", object_data_raw_rjson: dict[int, str] = None):
@@ -177,31 +212,6 @@ def get_object_ids(object_type: str = "All", object_data_raw_rjson: dict[int, st
                 obj_ids.append(obj_id)
 
     return obj_ids
-
-
-def get_port_links() -> [dict[int, dict[str, int]]]:
-    info_lines = subprocess.check_output(shlex.split(f"/usr/bin/pw-link --links --id")).decode("utf-8").split("\n")
-
-    links = {}
-    port_0_id = None
-
-    for line in info_lines:
-        if line:
-            if "|->" in line:
-                link_id = line.split()[0]
-                port_to_id = line.split("|->")[1].split()[0]
-                links[link_id] = {"from": port_0_id, "to": port_to_id}
-
-            ## turns out, pw-link --links --id gives the links twice, one in each |->, |<- direction, so it is enough to check then in one direction
-            # elif "|<-" in line:
-            #     link_id = line.split()[0]
-            #     endpoint_from_id = line.split("|<-")[1].split()[0]
-            #     links[link_id] = {"from": endpoint_from_id, "to": port_0_id}
-            else:
-                port_0_id = line.split()[0]
-
-    print(f"{len(links)} connections found")
-    return links
 
 
 class VirtualSink():
