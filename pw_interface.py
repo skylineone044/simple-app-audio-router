@@ -1,4 +1,5 @@
 import json
+import re
 import shlex
 import subprocess
 
@@ -32,22 +33,45 @@ def to_python_type(string_input: str):
 
 
 def get_port_info(port_id: int):
-    node_port_raw = subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info {port_id}")).decode("utf-8").split("\n")
+    node_port_raw: [str] = subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info {port_id}")).decode(
+        "utf-8").split("\n")
     port = {}
+    props = False
     for line in node_port_raw:
         if line:
-            line_parts = [element.strip('"') for element in line.split()]
-            print(line_parts)
-            if line.startswith("*"):
-                if len(line_parts) > 2:
-                    if line_parts[1] == "params:":
-                        break
-                    if "properties" not in port:
-                        port["properties"] = {}
-                    port["properties"][line_parts[1]] = to_python_type(line_parts[3])
+            if not props: # search for the object top level attributes
+                if line.endswith("properties:"):
+                    props = True
+                    continue
+                # match object root attribute names
+                # match on each line from the beginning to the first ":", but also excluding the whitespace
+                # and any one "*" char at the beginnign of the line
+                key_search = re.search("^(?:\**\s+)([a-zA-z ]+)(?:: )", line)
+                key = key_search.group(1)
 
-            else:
-                port[line_parts[0]] = to_python_type(line_parts[1])
+                # match object root attribute values
+                # match from the first ": " to the end of the line, but exclude the ": "
+                value_search = re.search("(?:: )(.+$)", line)
+                value = value_search.group(1)
+                print(f"{key=}")
+                print(f"{value=}")
+            else: # search for the properties of the object
+                if "params: " in line: # ignore object params, I do not need them
+                    break
+                # match object property names
+                # match on each line from the beginning to the first " = " while excluding the "*" and whitespace
+                # at the beginning, and the " = "
+                key_search = re.search("^(?:\**\s+)([a-zA-z\.\-\_]+)(?: = )", line)
+                key = key_search.group(1)
+
+                # match the object property values
+                # match from the first " = " to the end of the line, while excluding the " = "
+                value_search = re.search("(?: = )(.+$)", line)
+                value = value_search.group(1)
+                print(f"{key=}")
+                print(f"{value=}")
+
+
 
     print(json.dumps(port, indent=4))
 
