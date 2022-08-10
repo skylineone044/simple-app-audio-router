@@ -14,6 +14,44 @@ def pw_info_all():
     print(json.dumps(port_ids, indent=4))
 
 
+def to_python_type(string_input: str):
+    if string_input == "true":
+        return True
+    elif string_input == "false":
+        return False
+    else:
+        try:
+            int(string_input)
+            return int(string_input)
+        except ValueError:
+            try:
+                float(string_input)
+                return float(string_input)
+            except ValueError:
+                return string_input
+
+
+def get_port_info(port_id: int):
+    node_port_raw = subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info {port_id}")).decode("utf-8").split("\n")
+    port = {}
+    for line in node_port_raw:
+        if line:
+            line_parts = [element.strip('"') for element in line.split()]
+            print(line_parts)
+            if line.startswith("*"):
+                if len(line_parts) > 2:
+                    if line_parts[1] == "params:":
+                        break
+                    if "properties" not in port:
+                        port["properties"] = {}
+                    port["properties"][line_parts[1]] = to_python_type(line_parts[3])
+
+            else:
+                port[line_parts[0]] = to_python_type(line_parts[1])
+
+    print(json.dumps(port, indent=4))
+
+
 def get_object_ids(object_type: str = "All"):
     object_type = object_type.capitalize()
     accepted_object_types = (
@@ -31,7 +69,7 @@ def get_object_ids(object_type: str = "All"):
 
 
 def get_port_links() -> [dict[int, dict[str, int]]]:
-    info_lines = subprocess.check_output(shlex.split(f"/usr/bin/pw-link --links --id")).decode().split("\n")
+    info_lines = subprocess.check_output(shlex.split(f"/usr/bin/pw-link --links --id")).decode("utf-8").split("\n")
 
     links = {}
     port_0_id = None

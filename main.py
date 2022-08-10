@@ -24,7 +24,7 @@ class MainWindow(QMainWindow):
 
 
 
-pw_interface.pw_info_all()
+pw_interface.get_port_info(pw_interface.get_object_ids("Port")[0])
 
 
 exit(0)
