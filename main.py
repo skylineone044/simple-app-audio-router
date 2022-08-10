@@ -1,6 +1,10 @@
 import json
 import sys
 
+import time
+import subprocess
+import shlex
+
 from PyQt6 import uic, QtCore
 from PyQt6.QtWidgets import QApplication, QMainWindow
 
@@ -24,7 +28,13 @@ class MainWindow(QMainWindow):
 
 
 
-pw_interface.get_object_info(pw_interface.get_object_ids("Node")[0])
+# for node in pw_interface.get_nodes():
+#     print(node)
+
+NM = pw_interface.NodeManager()
+for id, node in NM.nodes.items():
+    print(node)
+    pass
 
 
 exit(0)
