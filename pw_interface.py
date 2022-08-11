@@ -5,6 +5,11 @@ import subprocess
 
 import time
 
+NODE_APP_NAME_BLACKLIST = (
+    "Plasma PA",
+    "com.github.wwmm.easyeffects"
+)
+
 
 class Port():
     def __init__(self, json_data: dict[str, str | int | dict[str, str | int]]):
@@ -45,6 +50,12 @@ class Node():
             elif port.direction == "output":
                 self.output_ports[port.id] = port
 
+    def is_source(self):
+        return len(self.output_ports) > 0
+
+    def is_sink(self):
+        return len(self.input_ports) > 0
+
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, indent=4)
 
@@ -69,7 +80,7 @@ class Link():
         return self.toJSON()
 
 
-def get_all_data():
+def _get_all_data() -> dict[int, str]:
     delim = "\tid: "
     raw_object_data_rjson = dict([(int(item.split("\n")[0]), delim + item) for item in
                                   subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info all")).decode(
@@ -80,8 +91,7 @@ def get_all_data():
 
 class NodeManager():
     def __init__(self):
-        self.raw_object_data_rjson = get_all_data()
-        # print(self.raw_object_data_rjson)
+        self.raw_object_data_rjson: dict[int, str] | None = None
         self.ports: dict[int, Port] = {}
         self.nodes: dict[int, Node] = {}
         self.links: dict[int, Link] = {}
@@ -89,28 +99,46 @@ class NodeManager():
         self.update()
 
     def update(self):
+        self.raw_object_data_rjson = _get_all_data()
         self.ports = {}
         self.nodes = {}
         self.links = {}
 
         node_start = time.time()
-        for node_id in get_object_ids("Node", self.raw_object_data_rjson):
-            self.nodes[node_id] = Node(get_object_info(node_id, self.raw_object_data_rjson))
+        for node_id in _get_object_ids("Node", self.raw_object_data_rjson):
+            node = Node(_get_object_info(node_id, self.raw_object_data_rjson))
+            if node.app_name not in NODE_APP_NAME_BLACKLIST:
+                self.nodes[node_id] = node
         node_end = time.time()
         print(f"parsed {len(self.nodes)} nodes in: {round(node_end - node_start, 4)}s")
 
         port_start = time.time()
-        for port_id in get_object_ids("Port", self.raw_object_data_rjson):
-            self.ports[port_id] = Port(get_object_info(port_id, self.raw_object_data_rjson))
-            self.nodes[self.ports[port_id].parent_node_id]._populate_ports(self.ports[port_id])
+        for port_id in _get_object_ids("Port", self.raw_object_data_rjson):
+            self.ports[port_id] = Port(_get_object_info(port_id, self.raw_object_data_rjson))
+            try:
+                self.nodes[self.ports[port_id].parent_node_id]._populate_ports(self.ports[port_id])
+            except KeyError:
+                pass # the ports of blacklisted nodes are not needed
         port_end = time.time()
         print(f"parsed {len(self.ports)} ports in: {round(port_end - port_start, 4)}s")
 
         links_start = time.time()
-        for link_id in get_object_ids("Link", self.raw_object_data_rjson):
-            self.links[link_id] = Link(get_object_info(link_id, self.raw_object_data_rjson))
+        for link_id in _get_object_ids("Link", self.raw_object_data_rjson):
+            self.links[link_id] = Link(_get_object_info(link_id, self.raw_object_data_rjson))
         links_end = time.time()
         print(f"parsed {len(self.links)} links in: {round(links_end - links_start, 4)}s")
+
+    def get_nodes(self, direction: str = "All") -> dict[int, Node]:
+        direction = direction.capitalize()
+        acceptable_directions = ("Source", "Sink", "All")
+        if direction not in acceptable_directions:
+            raise ValueError(f"Invalid node direction: {direction}. Must be one of: {acceptable_directions}")
+
+        target_nodes = dict([(node_id, node) for node_id, node in self.nodes.items() if
+            direction == "All" or (direction == "Source" and node.is_source()) or (
+                        direction == "Sink" and node.is_sink())])
+
+        return target_nodes
 
 
 def to_python_type(string_input: str):
@@ -131,7 +159,7 @@ def to_python_type(string_input: str):
                 return string_input
 
 
-def get_object_info(object_id: int, object_data_raw_rjson: dict[int, str] = None):
+def _get_object_info(object_id: int, object_data_raw_rjson: dict[int, str] = None):
     if object_data_raw_rjson is None:
         object_data_raw_rjson: dict[int, str] = {
             object_id: subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info {object_id}")).decode("utf-8")}
@@ -186,7 +214,7 @@ def get_object_info(object_id: int, object_data_raw_rjson: dict[int, str] = None
     return pw_object
 
 
-def get_object_ids(object_type: str = "All", object_data_raw_rjson: dict[int, str] = None):
+def _get_object_ids(object_type: str = "All", object_data_raw_rjson: dict[int, str] = None):
     object_type = object_type.capitalize()
     accepted_object_types = (
         "Core", "Client", "Module", "Node", "Port", "Link", "Device", "Factory", "Session", "Endpoint", "All")
