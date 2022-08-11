@@ -5,14 +5,40 @@ import subprocess
 
 import time
 
-NODE_APP_NAME_BLACKLIST = (
-    "Plasma PA",
-    "com.github.wwmm.easyeffects",
-)
+NODE_APP_NAME_BLACKLIST = ("Plasma PA", "com.github.wwmm.easyeffects",)
 
-NODE_NAME_BLACKLIST = (
-    "Midi-Bridge"
-)
+NODE_NAME_BLACKLIST = ("Midi-Bridge")
+
+
+class VirtualSink():
+    def __init__(self):
+        self.process = subprocess.Popen(shlex.split(
+            "/usr/bin/pw-loopback -m '[ FL FR]' --capture-props='media.class=Audio/Sink node.name=test-sink'"))
+        self.name = f"loopback-{self.process.pid}-18"
+        print(f"Created Virtual Sink: {self.name}")
+
+    def _remove(self) -> None:
+        self.process.terminate()
+        print(f"Removed Virtual Sink: {self.name}")
+
+
+class VirtualSinkManager():
+    def __init__(self):
+        self.virtual_sink_processes: [VirtualSink] = []
+
+    def create_virtual_sink(self) -> VirtualSink:
+        vs = VirtualSink()
+        self.virtual_sink_processes.append(vs)
+        return vs
+
+    def remove(self, vs: VirtualSink) -> None:
+        self.virtual_sink_processes.remove(vs)
+        vs._remove()
+
+    def terminate_all(self) -> None:
+        for proc in self.virtual_sink_processes:
+            proc._remove()
+        self.virtual_sink_processes = []
 
 
 class Port():
@@ -61,8 +87,7 @@ class Node():
         return len(self.input_ports) > 0
 
     def get_readable_name(self) -> str:
-        return f"{self.node_name}{' ('+self.app_name+')' if self.node_name != self.app_name else ''}: {self.media_name}"
-
+        return f"{self.node_name}{' (' + self.app_name + ')' if self.node_name != self.app_name else ''}: {self.media_name}"
 
     def toJSON(self) -> str:
         return json.dumps(self, default=lambda o: o.__dict__, indent=4)
@@ -126,7 +151,7 @@ class NodeManager():
             try:
                 self.nodes[self.ports[port_id].parent_node_id]._populate_ports(self.ports[port_id])
             except KeyError:
-                pass # the ports of blacklisted nodes are not needed
+                pass  # the ports of blacklisted nodes are not needed
         port_end = time.time()
         print(f"parsed {len(self.ports)} ports in: {round(port_end - port_start, 4)}s")
 
@@ -136,6 +161,7 @@ class NodeManager():
         links_end = time.time()
         print(f"parsed {len(self.links)} links in: {round(links_end - links_start, 4)}s")
 
+
     def get_nodes(self, direction: str = "All") -> dict[int, Node]:
         direction = direction.capitalize()
         acceptable_directions = ("Source", "Sink", "All")
@@ -143,10 +169,27 @@ class NodeManager():
             raise ValueError(f"Invalid node direction: {direction}. Must be one of: {acceptable_directions}")
 
         target_nodes = dict([(node_id, node) for node_id, node in self.nodes.items() if
-            direction == "All" or (direction == "Source" and node.is_source()) or (
-                        direction == "Sink" and node.is_sink())])
+                             direction == "All" or (direction == "Source" and node.is_source()) or (
+                                     direction == "Sink" and node.is_sink())])
 
         return target_nodes
+
+    def get_loopback_sink_node(self, loopback_virtual_sink: VirtualSink) -> Node:
+        result_node: Node | None = None
+        time_increment: float = 0.02
+        counter: int = 0
+
+        while not result_node:
+            print(f"Getting sink node for: {loopback_virtual_sink.name}")
+            counter += 1
+            time.sleep(time_increment * counter)
+            self.update()
+            for node in self.get_nodes("Sink").values():
+                # print("loop ", loopback_virtual_sink.name, "node ", node.media_name)
+                if loopback_virtual_sink.name in node.media_name:
+                    result_node = node
+        print(f"Selected {result_node.get_readable_name()} in {counter} tries")
+        return result_node
 
 
 def to_python_type(string_input: str) -> int | float | str:
@@ -167,7 +210,8 @@ def to_python_type(string_input: str) -> int | float | str:
                 return string_input
 
 
-def _get_object_info(object_id: int, object_data_raw_rjson: dict[int, str] = None) -> dict[str, str | int | dict[str, str | int]]:
+def _get_object_info(object_id: int, object_data_raw_rjson: dict[int, str] = None) -> dict[
+    str, str | int | dict[str, str | int]]:
     if object_data_raw_rjson is None:
         object_data_raw_rjson: dict[int, str] = {
             object_id: subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info {object_id}")).decode("utf-8")}
@@ -248,34 +292,3 @@ def _get_object_ids(object_type: str = "All", object_data_raw_rjson: dict[int, s
                 obj_ids.append(obj_id)
 
     return obj_ids
-
-
-class VirtualSink():
-    def __init__(self):
-        self.process = subprocess.Popen(shlex.split(
-            "/usr/bin/pw-loopback -m '[ FL FR]' --capture-props='media.class=Audio/Sink node.name=test-sink'"))
-        self.name = f"loopback-{self.process.pid}-18"
-        print(f"Created Virtual Sink: {self.name}")
-
-    def _remove(self) -> None:
-        self.process.terminate()
-        print(f"Removed Virtual Sink: {self.name}")
-
-
-class VirtualSinkManager():
-    def __init__(self):
-        self.virtual_sink_processes: [VirtualSink] = []
-
-    def create_virtual_sink(self) -> VirtualSink:
-        vs = VirtualSink()
-        self.virtual_sink_processes.append(vs)
-        return vs
-
-    def remove(self, vs: VirtualSink) -> None:
-        self.virtual_sink_processes.remove(vs)
-        vs._remove()
-
-    def terminate_all(self) -> None:
-        for proc in self.virtual_sink_processes:
-            proc._remove()
-        self.virtual_sink_processes = []

@@ -1,3 +1,5 @@
+import time
+
 from PyQt6 import uic, QtCore
 from PyQt6.QtWidgets import QComboBox, QWidget, QHBoxLayout, QFrame, QPushButton
 
@@ -32,8 +34,11 @@ class RouteWidget(QWidget):
         super().__init__()
         uic.loadUi("RouteWidget.ui", self)
         self.parent_scrollWidget = scrollWidget
-        self.virtual_sink_manager = virtual_sink_manager
-        self.node_manager = node_manager
+        self.node_manager:pw_interface.NodeManager = node_manager
+
+        self.virtual_sink_manager:pw_interface.VirtualSinkManager = virtual_sink_manager
+        self.virtual_sink:pw_interface.VirtualSink = self.virtual_sink_manager.create_virtual_sink()
+        self.sink_name_label.setText(self.virtual_sink.name)
 
         self.app_combobox_height = 32
         self.app_combobox_vbox_padding = 10
@@ -45,8 +50,7 @@ class RouteWidget(QWidget):
 
         self.add_app_output_combobox()
 
-        self.virtual_sink = self.virtual_sink_manager.create_virtual_sink()
-        self.sink_name_label.setText(self.virtual_sink.name)
+        self.selected_output_sink_node:pw_interface.Node = node_manager.get_loopback_sink_node(self.virtual_sink)
 
     def update_app_selection_combobox_items(self, cb: ComboBox):
         cb.clear()
