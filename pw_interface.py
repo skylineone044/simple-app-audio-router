@@ -117,7 +117,7 @@ def _get_all_data() -> dict[int, str]:
     delim = "\tid: "
     raw_object_data_rjson = dict([(int(item.split("\n")[0]), delim + item) for item in
                                   subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info all")).decode(
-                                      "utf-8").split(delim) if item])
+                                      "utf-8").split(delim) if item and not item.startswith("remote ")])
     # print(raw_object_data_rjson)
     return raw_object_data_rjson
 
