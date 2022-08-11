@@ -34,11 +34,11 @@ class MainWindow(QMainWindow):
 NM = pw_interface.NodeManager()
 print("Sink nodes: ")
 for node_id, node in NM.get_nodes("Sink").items():
-    print(node)
+    print(node.get_readable_name())
 
-print("Source nodes: ")
+print("\nSource nodes: ")
 for node_id, node in NM.get_nodes("Source").items():
-    print(node)
+    print(node.get_readable_name())
 
 exit(0)
 

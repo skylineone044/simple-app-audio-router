@@ -7,7 +7,11 @@ import time
 
 NODE_APP_NAME_BLACKLIST = (
     "Plasma PA",
-    "com.github.wwmm.easyeffects"
+    "com.github.wwmm.easyeffects",
+)
+
+NODE_NAME_BLACKLIST = (
+    "Midi-Bridge"
 )
 
 
@@ -55,6 +59,9 @@ class Node():
 
     def is_sink(self) -> bool:
         return len(self.input_ports) > 0
+
+    def get_readable_name(self) -> str:
+        return f"{self.node_name}{' ('+self.app_name+')' if self.node_name != self.app_name else ''}: {self.media_name}"
 
 
     def toJSON(self) -> str:
@@ -108,7 +115,7 @@ class NodeManager():
         node_start = time.time()
         for node_id in _get_object_ids("Node", self.raw_object_data_rjson):
             node = Node(_get_object_info(node_id, self.raw_object_data_rjson))
-            if node.app_name not in NODE_APP_NAME_BLACKLIST:
+            if node.app_name not in NODE_APP_NAME_BLACKLIST and node.node_name not in NODE_NAME_BLACKLIST:
                 self.nodes[node_id] = node
         node_end = time.time()
         print(f"parsed {len(self.nodes)} nodes in: {round(node_end - node_start, 4)}s")
