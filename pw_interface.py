@@ -346,5 +346,4 @@ def _pw_link(source_port_id: int | None = None, sink_port_id: int | None = None,
             shlex.split(f"/usr/bin/pw-link {'--disconnect' if disconnect else ''} {source_port_id} {sink_port_id}"))
     elif source_port_id is None and sink_port_id is None and link_id is not None and disconnect:
         print(f"'Disconnecting link: {link_id}")
-        subprocess.run( shlex.split(f"/usr/bin/pw-link --disconnect {link_id}"))
-
+        subprocess.run(shlex.split(f"/usr/bin/pw-link --disconnect {link_id}"))

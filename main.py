@@ -22,7 +22,6 @@ class MainWindow(QMainWindow):
         self.output_list.addWidget(self.routerWidgets[-1], alignment=QtCore.Qt.AlignmentFlag.AlignTop)
 
 
-
 app = QApplication(sys.argv)
 
 from PyQt6.QtWidgets import QStyleFactory
@@ -32,10 +31,6 @@ print(f"Available themes: {AVAILABLE_THEMES}")
 app.setStyle(AVAILABLE_THEMES[0])
 print(f"Current theme: {app.style().objectName()}")
 app.setStyleSheet("background-color: rgba(0, 0, 0, 0)")
-
-# print("Outputs: " + json.dumps(pw_interface.get_node_outputs(), indent=4))
-# print("Inputs: " + json.dumps(pw_interface.get_node_inputs(), indent=4))
-# print(f"{pw_interface.get_node_links()=}")
 
 VSM = pw_interface.VirtualSinkManager()
 NM = pw_interface.NodeManager()
