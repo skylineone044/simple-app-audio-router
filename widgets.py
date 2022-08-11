@@ -19,22 +19,22 @@ class ComboBox(QComboBox):
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
 
         self.node_manager: pw_interface.NodeManager = node_manager
-        self.app_node = app_node
-        self.parent_sink_node = parent_sink_node
+        self.app_node: pw_interface.Node | None = app_node
+        self.parent_sink_node: pw_interface.Node = parent_sink_node
 
-        self.last_selected = " "
+        self.last_selected: str = " "
         self.activated.connect(self.on_activated)
 
-    def on_activated(self):
-        new_selection = str(self.currentText())
+    def on_activated(self) -> None:
+        new_selection: str = str(self.currentText())
         print(f"activating: {new_selection}")
         new_selection_node_id: int = int(new_selection.split(":")[0])
         if self.last_selected == " ":
-            print("last was empty")
+            # print("last was empty")
             self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]
             self.node_manager.connect_nodes(self.app_node, self.parent_sink_node)
         else:
-            print("last was not empty")
+            # print("last was not empty")
             self.disconnect_app_node()
             self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]
             self.node_manager.connect_nodes(self.app_node, self.parent_sink_node)
@@ -51,7 +51,7 @@ class ComboBox(QComboBox):
         else:
             return self.scrollWidget.wheelEvent(*args, **kwargs)
 
-    def showPopup(self):
+    def showPopup(self) -> None:
         self.popupAboutToBeShown.emit()
         # print("showing popup!")
         super(ComboBox, self).showPopup()
@@ -69,10 +69,10 @@ class RouteWidget(QWidget):
         self.virtual_sink: pw_interface.VirtualSink = self.virtual_sink_manager.create_virtual_sink()
         self.sink_name_label.setText(self.virtual_sink.name)
 
-        self.app_combobox_height = 32
-        self.app_combobox_vbox_padding = 10
+        self.app_combobox_height: int = 32
+        self.app_combobox_vbox_padding: int = 10
 
-        self.app_output_comboboxes = []
+        self.app_output_comboboxes: [QFrame] = []
 
         self.add_more_apps_btn.clicked.connect(self.add_app_output_combobox)
         self.remove_sink_button.clicked.connect(self.remove)
@@ -82,14 +82,14 @@ class RouteWidget(QWidget):
 
         self.add_app_output_combobox()
 
-    def update_app_selection_combobox_items(self, cb: ComboBox):
+    def update_app_selection_combobox_items(self, cb: ComboBox) -> None:
         cb.clear()
         self.node_manager.update()
         cb.addItems(
             [" "] + [f"{node_id}: {node.get_readable_name()}" for node_id, node in
                      self.node_manager.get_nodes("Source").items()])
 
-    def remove_app_output_combobox(self, cb_frame: QFrame):
+    def remove_app_output_combobox(self, cb_frame: QFrame) -> None:
         cb_frame.findChild(ComboBox).disconnect_app_node()
         self.app_output_comboboxes.remove(cb_frame)
         cb_frame.setParent(None)
@@ -99,24 +99,24 @@ class RouteWidget(QWidget):
         self.setFixedHeight(
             max(len(self.app_output_comboboxes) * self.app_combobox_height + 2 * self.app_combobox_vbox_padding, 100))
 
-    def add_app_output_combobox(self):
-        hbox = QFrame()
+    def add_app_output_combobox(self) -> None:
+        hbox: QFrame = QFrame()
         hbox.setContentsMargins(0, 0, 0, 0)
 
         self.app_list_vbox.addWidget(hbox, alignment=QtCore.Qt.AlignmentFlag.AlignTop)
         self.app_output_comboboxes.append(hbox)
 
-        hbox_layout = QHBoxLayout()
+        hbox_layout: QHBoxLayout = QHBoxLayout()
         hbox.setLayout(hbox_layout)
         hbox.setFixedHeight(self.app_combobox_height)
 
-        cb = ComboBox(scrollWidget=self.parent_scrollWidget, node_manager=self.node_manager, app_node=None,
+        cb: ComboBox = ComboBox(scrollWidget=self.parent_scrollWidget, node_manager=self.node_manager, app_node=None,
                       parent_sink_node=self.output_sink_node)
         cb.setFixedHeight(self.app_combobox_height - 7)
         cb.popupAboutToBeShown.connect(
             lambda: self.update_app_selection_combobox_items(cb))
 
-        remove_btn = QPushButton("Remove")
+        remove_btn: QPushButton = QPushButton("Remove")
         remove_btn.setFixedHeight(self.app_combobox_height - 7)
         remove_btn.setFixedWidth(60)
         remove_btn.clicked.connect(lambda: self.remove_app_output_combobox(hbox))
@@ -129,6 +129,6 @@ class RouteWidget(QWidget):
         self.setFixedHeight(
             max(len(self.app_output_comboboxes) * self.app_combobox_height + 2 * self.app_combobox_vbox_padding, 100))
 
-    def remove(self):
+    def remove(self) -> None:
         self.virtual_sink_manager.remove(self.virtual_sink)
         self.setParent(None)
