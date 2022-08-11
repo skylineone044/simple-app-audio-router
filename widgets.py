@@ -28,16 +28,19 @@ class ComboBox(QComboBox):
     def on_activated(self) -> None:
         new_selection: str = str(self.currentText())
         print(f"activating: {new_selection}")
-        new_selection_node_id: int = int(new_selection.split(":")[0])
-        if self.last_selected == " ":
-            # print("last was empty")
-            self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]
-            self.node_manager.connect_nodes(self.app_node, self.parent_sink_node)
-        else:
-            # print("last was not empty")
+        if new_selection == " ":
             self.disconnect_app_node()
-            self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]
-            self.node_manager.connect_nodes(self.app_node, self.parent_sink_node)
+        else:
+            new_selection_node_id: int = int(new_selection.split(":")[0])
+            if self.last_selected == " ":
+                # print("last was empty")
+                self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]
+                self.node_manager.connect_nodes(self.app_node, self.parent_sink_node)
+            else:
+                # print("last was not empty")
+                self.disconnect_app_node()
+                self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]
+                self.node_manager.connect_nodes(self.app_node, self.parent_sink_node)
 
         self.last_selected = new_selection
 

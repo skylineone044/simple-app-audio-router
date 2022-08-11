@@ -190,20 +190,19 @@ class NodeManager():
         print(f"Selected {result_node.get_readable_name()} in {counter} tries")
         return result_node
 
-    def connect_nodes(self, source_node: Node | None, sink_node: Node | None) -> None:
+    def connect_nodes(self, source_node: Node | None, sink_node: Node | None, disconnect=False) -> None:
         if source_node and sink_node:
             print(
-                f"Connecting node {source_node.id} {source_node.get_readable_name()} to {sink_node.id} {sink_node.get_readable_name()}")
+                f"{'Dis' if disconnect else ''}connecting node {source_node.id} {source_node.get_readable_name()} {'to' if not disconnect else 'from'} {sink_node.id} {sink_node.get_readable_name()}")
+            if len(source_node.output_ports) == len(sink_node.input_ports):
+                for source_port_id, sink_port_id in zip(source_node.output_ports, sink_node.input_ports):
+                    _pw_link(source_port_id, sink_port_id, disconnect=disconnect)
         else:
-            print(f"Cannot connect node {source_node} {source_node} to {sink_node.id} {sink_node.get_readable_name()}")
+            print(
+                f"Cannot {'Dis' if disconnect else ''}connect node {source_node} {source_node} {'to' if not disconnect else 'from'} {sink_node.id} {sink_node.get_readable_name()}")
 
     def disconnect_nodes(self, source_node: Node | None, sink_node: Node | None) -> None:
-        if source_node and sink_node:
-            print(
-                f"Disconnecting node {source_node.id} {source_node.get_readable_name()} from {sink_node.id} {sink_node.get_readable_name()}")
-        else:
-            print(
-                f"Cannot disconnect node {source_node} {source_node} from {sink_node.id} {sink_node.get_readable_name()}")
+        self.connect_nodes(source_node, sink_node, disconnect=True)
 
 
 def to_python_type(string_input: str) -> int | float | str:
@@ -306,3 +305,9 @@ def _get_object_ids(object_type: str = "All", object_data_raw_rjson: dict[int, s
                 obj_ids.append(obj_id)
 
     return obj_ids
+
+
+def _pw_link(source_port_id: int, sink_port_id: int, disconnect: bool = False) -> None:
+    print(f"{'Dis' if disconnect else ''}connecting ports: {source_port_id}, {sink_port_id}")
+    subprocess.run(
+        shlex.split(f"/usr/bin/pw-link {'--disconnect' if disconnect else ''} {source_port_id} {sink_port_id}"))
