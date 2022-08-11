@@ -192,16 +192,18 @@ class NodeManager():
 
     def connect_nodes(self, source_node: Node | None, sink_node: Node | None) -> None:
         if source_node and sink_node:
-            print(f"Connecting node {source_node.id} {source_node.get_readable_name()} to {sink_node.id} {sink_node.get_readable_name()}")
+            print(
+                f"Connecting node {source_node.id} {source_node.get_readable_name()} to {sink_node.id} {sink_node.get_readable_name()}")
         else:
             print(f"Cannot connect node {source_node} {source_node} to {sink_node.id} {sink_node.get_readable_name()}")
 
     def disconnect_nodes(self, source_node: Node | None, sink_node: Node | None) -> None:
         if source_node and sink_node:
-            print(f"disconnecting node {source_node.id} {source_node.get_readable_name()} from {sink_node.id} {sink_node.get_readable_name()}")
+            print(
+                f"Disconnecting node {source_node.id} {source_node.get_readable_name()} from {sink_node.id} {sink_node.get_readable_name()}")
         else:
-            print(f"Cannot disconnect node {source_node} {source_node} from {sink_node.id} {sink_node.get_readable_name()}")
-
+            print(
+                f"Cannot disconnect node {source_node} {source_node} from {sink_node.id} {sink_node.get_readable_name()}")
 
 
 def to_python_type(string_input: str) -> int | float | str:

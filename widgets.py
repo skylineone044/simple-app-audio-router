@@ -111,7 +111,7 @@ class RouteWidget(QWidget):
         hbox.setFixedHeight(self.app_combobox_height)
 
         cb: ComboBox = ComboBox(scrollWidget=self.parent_scrollWidget, node_manager=self.node_manager, app_node=None,
-                      parent_sink_node=self.output_sink_node)
+                                parent_sink_node=self.output_sink_node)
         cb.setFixedHeight(self.app_combobox_height - 7)
         cb.popupAboutToBeShown.connect(
             lambda: self.update_app_selection_combobox_items(cb))
