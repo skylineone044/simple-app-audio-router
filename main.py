@@ -1,9 +1,4 @@
-import json
 import sys
-
-import time
-import subprocess
-import shlex
 
 from PyQt6 import uic, QtCore
 from PyQt6.QtWidgets import QApplication, QMainWindow
@@ -23,24 +18,9 @@ class MainWindow(QMainWindow):
         self.addMoreOutputsButton.clicked.connect(self.add_router_widget)
 
     def add_router_widget(self):
-        self.routerWidgets.append(widgets.RouteWidget(self.scrollArea, VSM))
+        self.routerWidgets.append(widgets.RouteWidget(self.scrollArea, VSM, NM))
         self.output_list.addWidget(self.routerWidgets[-1], alignment=QtCore.Qt.AlignmentFlag.AlignTop)
 
-
-
-# for node in pw_interface.get_nodes():
-#     print(node)
-
-NM = pw_interface.NodeManager()
-print("Sink nodes: ")
-for node_id, node in NM.get_nodes("Sink").items():
-    print(node.get_readable_name())
-
-print("\nSource nodes: ")
-for node_id, node in NM.get_nodes("Source").items():
-    print(node.get_readable_name())
-
-exit(0)
 
 
 app = QApplication(sys.argv)
@@ -58,6 +38,7 @@ app.setStyleSheet("background-color: rgba(0, 0, 0, 0)")
 # print(f"{pw_interface.get_node_links()=}")
 
 VSM = pw_interface.VirtualSinkManager()
+NM = pw_interface.NodeManager()
 
 try:
     window = MainWindow()

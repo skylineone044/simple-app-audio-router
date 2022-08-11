@@ -27,11 +27,13 @@ class ComboBox(QComboBox):
 
 
 class RouteWidget(QWidget):
-    def __init__(self, scrollWidget=None, virtual_sink_manager=None):
+    def __init__(self, scrollWidget=None, virtual_sink_manager: pw_interface.VirtualSinkManager = None,
+                 node_manager: pw_interface.NodeManager = None):
         super().__init__()
         uic.loadUi("RouteWidget.ui", self)
         self.parent_scrollWidget = scrollWidget
         self.virtual_sink_manager = virtual_sink_manager
+        self.node_manager = node_manager
 
         self.app_combobox_height = 32
         self.app_combobox_vbox_padding = 10
@@ -48,8 +50,10 @@ class RouteWidget(QWidget):
 
     def update_app_selection_combobox_items(self, cb: ComboBox):
         cb.clear()
+        self.node_manager.update()
         cb.addItems(
-            [" "] + [f"{item_id}: {item_name}" for item_id, item_name in pw_interface.get_node_outputs().items()])
+            [" "] + [f"{node_id}: {node.get_readable_name()}" for node_id, node in
+                     self.node_manager.get_nodes("Source").items()])
 
     def remove_app_output_combobox(self, cb):
         # TODO: do not forget to disconnect the app from the virtual sink
