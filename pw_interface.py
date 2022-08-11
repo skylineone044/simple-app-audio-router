@@ -21,10 +21,10 @@ class Port():
 
         # self.json_data: dict[str, str | int | dict[str, str | int]] = json_data
 
-    def toJSON(self):
+    def toJSON(self) -> str:
         return json.dumps(self, default=lambda o: o.__dict__, indent=4)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.toJSON()
 
 
@@ -43,23 +43,24 @@ class Node():
 
         # self.json_data: dict[str, str | int | dict[str, str | int]] = json_data
 
-    def _populate_ports(self, port: Port):
+    def _populate_ports(self, port: Port) -> None:
         if port.parent_node_id == self.id:
             if port.direction == "input":
                 self.input_ports[port.id] = port
             elif port.direction == "output":
                 self.output_ports[port.id] = port
 
-    def is_source(self):
+    def is_source(self) -> bool:
         return len(self.output_ports) > 0
 
-    def is_sink(self):
+    def is_sink(self) -> bool:
         return len(self.input_ports) > 0
 
-    def toJSON(self):
+
+    def toJSON(self) -> str:
         return json.dumps(self, default=lambda o: o.__dict__, indent=4)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.toJSON()
 
 
@@ -73,10 +74,10 @@ class Link():
 
         # self.json_data = json_data
 
-    def toJSON(self):
+    def toJSON(self) -> str:
         return json.dumps(self, default=lambda o: o.__dict__, indent=4)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.toJSON()
 
 
@@ -98,7 +99,7 @@ class NodeManager():
 
         self.update()
 
-    def update(self):
+    def update(self) -> None:
         self.raw_object_data_rjson = _get_all_data()
         self.ports = {}
         self.nodes = {}
@@ -141,7 +142,7 @@ class NodeManager():
         return target_nodes
 
 
-def to_python_type(string_input: str):
+def to_python_type(string_input: str) -> int | float | str:
     string_input = string_input.strip('"')
     if string_input == "true":
         return True
@@ -159,7 +160,7 @@ def to_python_type(string_input: str):
                 return string_input
 
 
-def _get_object_info(object_id: int, object_data_raw_rjson: dict[int, str] = None):
+def _get_object_info(object_id: int, object_data_raw_rjson: dict[int, str] = None) -> dict[str, str | int | dict[str, str | int]]:
     if object_data_raw_rjson is None:
         object_data_raw_rjson: dict[int, str] = {
             object_id: subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info {object_id}")).decode("utf-8")}
@@ -214,7 +215,7 @@ def _get_object_info(object_id: int, object_data_raw_rjson: dict[int, str] = Non
     return pw_object
 
 
-def _get_object_ids(object_type: str = "All", object_data_raw_rjson: dict[int, str] = None):
+def _get_object_ids(object_type: str = "All", object_data_raw_rjson: dict[int, str] = None) -> [int]:
     object_type = object_type.capitalize()
     accepted_object_types = (
         "Core", "Client", "Module", "Node", "Port", "Link", "Device", "Factory", "Session", "Endpoint", "All")
@@ -249,7 +250,7 @@ class VirtualSink():
         self.name = f"loopback-{self.process.pid}-18"
         print(f"Created Virtual Sink: {self.name}")
 
-    def _remove(self):
+    def _remove(self) -> None:
         self.process.terminate()
         print(f"Removed Virtual Sink: {self.name}")
 
@@ -258,16 +259,16 @@ class VirtualSinkManager():
     def __init__(self):
         self.virtual_sink_processes: [VirtualSink] = []
 
-    def create_virtual_sink(self):
+    def create_virtual_sink(self) -> VirtualSink:
         vs = VirtualSink()
         self.virtual_sink_processes.append(vs)
         return vs
 
-    def remove(self, vs: VirtualSink):
+    def remove(self, vs: VirtualSink) -> None:
         self.virtual_sink_processes.remove(vs)
         vs._remove()
 
-    def terminate_all(self):
+    def terminate_all(self) -> None:
         for proc in self.virtual_sink_processes:
             proc._remove()
         self.virtual_sink_processes = []
