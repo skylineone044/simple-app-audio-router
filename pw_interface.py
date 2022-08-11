@@ -190,19 +190,21 @@ class NodeManager():
         print(f"Selected {result_node.get_readable_name()} in {counter} tries")
         return result_node
 
-    def connect_nodes(self, source_node: Node | None, sink_node: Node | None, disconnect=False) -> None:
-        if source_node and sink_node:
-            print(
-                f"{'Dis' if disconnect else ''}connecting node {source_node.id} {source_node.get_readable_name()} {'to' if not disconnect else 'from'} {sink_node.id} {sink_node.get_readable_name()}")
-            if len(source_node.output_ports) == len(sink_node.input_ports):
-                for source_port_id, sink_port_id in zip(source_node.output_ports, sink_node.input_ports):
-                    _pw_link(source_port_id, sink_port_id, disconnect=disconnect)
-        else:
-            print(
-                f"Cannot {'Dis' if disconnect else ''}connect node {source_node} {source_node} {'to' if not disconnect else 'from'} {sink_node.id} {sink_node.get_readable_name()}")
 
-    def disconnect_nodes(self, source_node: Node | None, sink_node: Node | None) -> None:
-        self.connect_nodes(source_node, sink_node, disconnect=True)
+def connect_nodes(source_node: Node | None, sink_node: Node | None, disconnect=False) -> None:
+    if source_node and sink_node:
+        print(
+            f"{'Dis' if disconnect else ''}connecting node {source_node.id} {source_node.get_readable_name()} {'to' if not disconnect else 'from'} {sink_node.id} {sink_node.get_readable_name()}")
+        if len(source_node.output_ports) == len(sink_node.input_ports):
+            for source_port_id, sink_port_id in zip(source_node.output_ports, sink_node.input_ports):
+                _pw_link(source_port_id, sink_port_id, disconnect=disconnect)
+    else:
+        print(
+            f"Cannot {'Dis' if disconnect else ''}connect node {source_node} {source_node} {'to' if not disconnect else 'from'} {sink_node.id} {sink_node.get_readable_name()}")
+
+
+def disconnect_nodes(source_node: Node | None, sink_node: Node | None) -> None:
+    connect_nodes(source_node, sink_node, disconnect=True)
 
 
 def to_python_type(string_input: str) -> int | float | str:

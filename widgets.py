@@ -35,17 +35,17 @@ class ComboBox(QComboBox):
             if self.last_selected == " ":
                 # print("last was empty")
                 self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]
-                self.node_manager.connect_nodes(self.app_node, self.parent_sink_node)
+                pw_interface.connect_nodes(self.app_node, self.parent_sink_node)
             else:
                 # print("last was not empty")
                 self.disconnect_app_node()
                 self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]
-                self.node_manager.connect_nodes(self.app_node, self.parent_sink_node)
+                pw_interface.connect_nodes(self.app_node, self.parent_sink_node)
 
         self.last_selected = new_selection
 
     def disconnect_app_node(self) -> None:
-        self.node_manager.disconnect_nodes(self.app_node, self.parent_sink_node)
+        pw_interface.disconnect_nodes(self.app_node, self.parent_sink_node)
         self.app_node = None
 
     def wheelEvent(self, *args, **kwargs):
