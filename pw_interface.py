@@ -187,8 +187,37 @@ class NodeManager():
                 # print("loop ", loopback_virtual_sink.name, "node ", node.media_name)
                 if loopback_virtual_sink.name in node.media_name:
                     result_node = node
+
         print(f"Selected {result_node.get_readable_name()} in {counter} tries")
+        self.disconnect_loopback_output(loopback_virtual_sink)
         return result_node
+
+    def disconnect_loopback_output(self,
+                                   loopback_virtual_sink: VirtualSink) -> None:  # by default the loopback output node is connected to the system output
+        print("disconnecting virtual sink output...")
+        result_node: Node | None = None
+        time_increment: float = 0.02
+        counter: int = 0
+
+        while not result_node:
+            print(f"getting source output node for: {loopback_virtual_sink.name}")
+            counter += 1
+            time.sleep(time_increment * counter)
+            self.update()
+            for node in self.get_nodes("Source").values():
+                # print("loop ", loopback_virtual_sink.name, "node ", node.media_name)
+                if f"{loopback_virtual_sink.name} output" == node.media_name:
+                    # print(node)
+                    result_node = node
+
+        print(f"Selected {result_node.get_readable_name()} in {counter} tries")
+        self.disconnect_all_links_from_ports((result_node.output_ports.keys()))
+        return result_node
+
+    def disconnect_all_links_from_ports(self, target_port_ids: [int]) -> None:
+        for link_id, link in self.links.items():
+            if link.output_port_id in target_port_ids:
+                _pw_link(link_id=link_id, disconnect=True)
 
 
 def connect_nodes(source_node: Node | None, sink_node: Node | None, disconnect=False) -> None:
@@ -197,7 +226,7 @@ def connect_nodes(source_node: Node | None, sink_node: Node | None, disconnect=F
             f"{'Dis' if disconnect else ''}connecting node {source_node.id} {source_node.get_readable_name()} {'to' if not disconnect else 'from'} {sink_node.id} {sink_node.get_readable_name()}")
         if len(source_node.output_ports) == len(sink_node.input_ports):
             for source_port_id, sink_port_id in zip(source_node.output_ports, sink_node.input_ports):
-                _pw_link(source_port_id, sink_port_id, disconnect=disconnect)
+                _pw_link(source_port_id=source_port_id, sink_port_id=sink_port_id, disconnect=disconnect)
     else:
         print(
             f"Cannot {'Dis' if disconnect else ''}connect node {source_node} {source_node} {'to' if not disconnect else 'from'} {sink_node.id} {sink_node.get_readable_name()}")
@@ -309,7 +338,13 @@ def _get_object_ids(object_type: str = "All", object_data_raw_rjson: dict[int, s
     return obj_ids
 
 
-def _pw_link(source_port_id: int, sink_port_id: int, disconnect: bool = False) -> None:
-    print(f"{'Dis' if disconnect else ''}connecting ports: {source_port_id}, {sink_port_id}")
-    subprocess.run(
-        shlex.split(f"/usr/bin/pw-link {'--disconnect' if disconnect else ''} {source_port_id} {sink_port_id}"))
+def _pw_link(source_port_id: int | None = None, sink_port_id: int | None = None, link_id: int | None = None,
+             disconnect: bool = False) -> None:
+    if source_port_id is not None and sink_port_id is not None and link_id is None:
+        print(f"{'Dis' if disconnect else ''}connecting ports: {source_port_id}, {sink_port_id}")
+        subprocess.run(
+            shlex.split(f"/usr/bin/pw-link {'--disconnect' if disconnect else ''} {source_port_id} {sink_port_id}"))
+    elif source_port_id is None and sink_port_id is None and link_id is not None and disconnect:
+        print(f"'Disconnecting link: {link_id}")
+        subprocess.run( shlex.split(f"/usr/bin/pw-link --disconnect {link_id}"))
+

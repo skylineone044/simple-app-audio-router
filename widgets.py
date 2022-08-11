@@ -81,7 +81,7 @@ class RouteWidget(QWidget):
         self.remove_sink_button.clicked.connect(self.remove)
 
         self.output_sink_node: pw_interface.Node = node_manager.get_loopback_sink_node(self.virtual_sink)
-        self.app_nodes: dict[int, pw_interface.Node] = {}
+        # self.app_nodes: dict[int, pw_interface.Node] = {}
 
         self.add_app_output_combobox()
 
