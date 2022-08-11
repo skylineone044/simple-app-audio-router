@@ -5,7 +5,7 @@ import subprocess
 
 import time
 
-NODE_APP_NAME_BLACKLIST = ("Plasma PA", "com.github.wwmm.easyeffects",)
+NODE_APP_NAME_BLACKLIST = ("Plasma PA", "com.github.wwmm.easyeffects", "PulseAudio Volume Control")
 
 NODE_NAME_BLACKLIST = ("Midi-Bridge")
 
@@ -141,6 +141,7 @@ class NodeManager():
         for node_id in _get_object_ids("Node", self.raw_object_data_rjson):
             node = Node(_get_object_info(node_id, self.raw_object_data_rjson))
             if node.app_name not in NODE_APP_NAME_BLACKLIST and node.node_name not in NODE_NAME_BLACKLIST:
+                print(node)
                 self.nodes[node_id] = node
         node_end = time.time()
         print(f"parsed {len(self.nodes)} nodes in: {round(node_end - node_start, 4)}s")
