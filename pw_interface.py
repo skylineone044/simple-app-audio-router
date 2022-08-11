@@ -141,7 +141,6 @@ class NodeManager():
         for node_id in _get_object_ids("Node", self.raw_object_data_rjson):
             node = Node(_get_object_info(node_id, self.raw_object_data_rjson))
             if node.app_name not in NODE_APP_NAME_BLACKLIST and node.node_name not in NODE_NAME_BLACKLIST:
-                print(node)
                 self.nodes[node_id] = node
         node_end = time.time()
         print(f"parsed {len(self.nodes)} nodes in: {round(node_end - node_start, 4)}s")
@@ -230,7 +229,7 @@ def connect_nodes(source_node: Node | None, sink_node: Node | None, disconnect=F
                 _pw_link(source_port_id=source_port_id, sink_port_id=sink_port_id, disconnect=disconnect)
     else:
         print(
-            f"Cannot {'Dis' if disconnect else ''}connect node {source_node} {source_node} {'to' if not disconnect else 'from'} {sink_node.id} {sink_node.get_readable_name()}")
+            f"Cannot {'Dis' if disconnect else ''}connect node {source_node} {'to' if not disconnect else 'from'} {sink_node.id} {sink_node.get_readable_name()}")
 
 
 def disconnect_nodes(source_node: Node | None, sink_node: Node | None) -> None:
@@ -346,5 +345,5 @@ def _pw_link(source_port_id: int | None = None, sink_port_id: int | None = None,
         subprocess.run(
             shlex.split(f"/usr/bin/pw-link {'--disconnect' if disconnect else ''} {source_port_id} {sink_port_id}"))
     elif source_port_id is None and sink_port_id is None and link_id is not None and disconnect:
-        print(f"'Disconnecting link: {link_id}")
+        print(f"Disconnecting link: {link_id}")
         subprocess.run(shlex.split(f"/usr/bin/pw-link --disconnect {link_id}"))
