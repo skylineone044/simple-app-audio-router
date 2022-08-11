@@ -161,7 +161,6 @@ class NodeManager():
         links_end = time.time()
         print(f"parsed {len(self.links)} links in: {round(links_end - links_start, 4)}s")
 
-
     def get_nodes(self, direction: str = "All") -> dict[int, Node]:
         direction = direction.capitalize()
         acceptable_directions = ("Source", "Sink", "All")
@@ -190,6 +189,19 @@ class NodeManager():
                     result_node = node
         print(f"Selected {result_node.get_readable_name()} in {counter} tries")
         return result_node
+
+    def connect_nodes(self, source_node: Node | None, sink_node: Node | None) -> None:
+        if source_node and sink_node:
+            print(f"Connecting node {source_node.id} {source_node.get_readable_name()} to {sink_node.id} {sink_node.get_readable_name()}")
+        else:
+            print(f"Cannot connect node {source_node} {source_node} to {sink_node.id} {sink_node.get_readable_name()}")
+
+    def disconnect_nodes(self, source_node: Node | None, sink_node: Node | None) -> None:
+        if source_node and sink_node:
+            print(f"disconnecting node {source_node.id} {source_node.get_readable_name()} from {sink_node.id} {sink_node.get_readable_name()}")
+        else:
+            print(f"Cannot disconnect node {source_node} {source_node} from {sink_node.id} {sink_node.get_readable_name()}")
+
 
 
 def to_python_type(string_input: str) -> int | float | str:
