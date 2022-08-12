@@ -116,6 +116,7 @@ class RouteWidget(QWidget):
 
     Each RouteWidget has its own virtual sink device
     """
+
     def __init__(self, scrollWidget=None, virtual_sink_manager: pw_interface.VirtualSinkManager = None,
                  node_manager: pw_interface.NodeManager = None):
         """
@@ -165,7 +166,8 @@ class RouteWidget(QWidget):
         # add the readable node names to the ComboBox's list, as well as a "no app selected" item: " "
         cb.addItems(
             [" "] + [f"{node_id}: {node.get_readable_name()}" for node_id, node in
-                     self.node_manager.get_nodes("Source").items()])
+                     sorted(self.node_manager.get_nodes("Source").items(),
+                            key=lambda node: node[1].get_readable_name().lower())])
 
     def remove_app_output_combobox(self, cb_frame: QFrame) -> None:
         """
