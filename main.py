@@ -22,7 +22,6 @@ if not pw_interface.check_sound_server():
     mess.exec()
     exit(2)
 
-
 AVAILABLE_THEMES = QStyleFactory.keys()  # get a list of available themes
 print(f"Available themes: {AVAILABLE_THEMES}")
 APP.setStyle(AVAILABLE_THEMES[0])  # pick the first available theme

@@ -2,14 +2,15 @@ import json
 import re
 import shlex
 import subprocess
-
 import time
 
+# load config from json config file
 with open("config.json", "r") as config_file:
     CONFIG = json.load(config_file)
 
 NODE_APP_NAME_BLACKLIST = CONFIG["NODE_APP_NAME_BLACKLIST"]
 NODE_NAME_BLACKLIST = CONFIG["NODE_NAME_BLACKLIST"]
+
 
 def check_sound_server() -> bool:
     """

@@ -63,12 +63,8 @@ class ComboBox(QComboBox):
     # the signal that is emitted before the app selection list is shown, used to refresh the list before displaying
     popupAboutToBeShown = QtCore.pyqtSignal(name="popupAboutToBeShown")
 
-    def __init__(self,
-                 scrollWidget=None,
-                 node_manager: pw_interface.NodeManager = None,
-                 app_node: pw_interface.Node = None,
-                 parent_sink_node: pw_interface.Node = None,
-                 parent=None):
+    def __init__(self, scrollWidget=None, node_manager: pw_interface.NodeManager = None,
+                 app_node: pw_interface.Node = None, parent_sink_node: pw_interface.Node = None, parent=None):
         """
         Creates a new Combobox
 
@@ -213,10 +209,9 @@ class RouteWidget(QWidget):
         cb.clear()  # remove everything from the list
         self.node_manager.update()  # get the latest app list
         # add the readable node names to the ComboBox's list, as well as a "no app selected" item: " "
-        cb.addItems(
-            [" "] + [f"{node_id}: {node.get_readable_name()}" for node_id, node in
-                     sorted(self.node_manager.get_nodes("Source").items(),
-                            key=lambda node: node[1].get_readable_name().lower())])
+        cb.addItems([" "] + [f"{node_id}: {node.get_readable_name()}" for node_id, node in
+                             sorted(self.node_manager.get_nodes("Source").items(),
+                                    key=lambda node: node[1].get_readable_name().lower())])
 
     def remove_app_output_combobox(self, cb_frame: QFrame) -> None:
         """
@@ -261,8 +256,7 @@ class RouteWidget(QWidget):
                                 parent_sink_node=self.output_sink_node)
         cb.setFixedHeight(self.app_combobox_height - 7)
         # connect the popupAboutToBeShown signal to updating the list of the ComboBox
-        cb.popupAboutToBeShown.connect(
-            lambda: self.update_app_selection_combobox_items(cb))
+        cb.popupAboutToBeShown.connect(lambda: self.update_app_selection_combobox_items(cb))
 
         # Create the remove button
         remove_btn: QPushButton = QPushButton("Remove")
