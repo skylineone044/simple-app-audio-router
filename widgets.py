@@ -110,12 +110,17 @@ class ComboBox(QComboBox):
                 self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]  # get new node
                 if not pw_interface.connect_nodes(self.app_node, self.parent_sink_node):  # connect new node to virtual sink
                     self.disconnect_app_node()
+                else:
+                    self.setCurrentText(new_selection)
             else:  # something was selected previously
                 # print("last was not empty")
-                self.disconnect_app_node()  # disconnects the previously selected node
-                self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]  # get new node
-                if not pw_interface.connect_nodes(self.app_node, self.parent_sink_node):  # connect new node to virtual sink
-                    self.disconnect_app_node()
+                if self.last_selected != new_selection:
+                    self.disconnect_app_node()  # disconnects the previously selected node
+                    self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]  # get new node
+                    if not pw_interface.connect_nodes(self.app_node, self.parent_sink_node):  # connect new node to virtual sink
+                        self.disconnect_app_node()
+                    else:
+                        self.setCurrentText(new_selection)
 
         self.last_selected = new_selection  # update last selection to the current one
 
