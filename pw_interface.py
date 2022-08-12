@@ -271,8 +271,16 @@ def _get_all_data() -> dict[int, str]:
     and the string is the information about that object
     """
     delim = "\tid: "
+    while True:
+        try:
+            data = subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info all"))
+            break
+        except subprocess.CalledProcessError as cpe:
+            print(f"An Error occurred while fetching the data {cpe.returncode}")
+            time.sleep(0.02)
+            continue
     raw_object_data_rjson = dict([(int(item.split("\n")[0]), delim + item) for item in
-                                  subprocess.check_output(shlex.split(f"/usr/bin/pw-cli info all")).decode(
+                                  data.decode(
                                       "utf-8").split(delim) if item and not item.startswith("remote ")])
     # print(raw_object_data_rjson)
     return raw_object_data_rjson
