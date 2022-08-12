@@ -131,9 +131,13 @@ class Port():
         """
         return self.toJSON()
 
+    def __repr__(self):
+        return str(self)
+
 
 class Node():
     """
+
     wrapper class around pipwwire's node object
     """
 
@@ -225,6 +229,9 @@ class Node():
         """
         return self.toJSON()
 
+    def __repr__(self):
+        return str(self)
+
 
 class Link():
     """
@@ -261,6 +268,9 @@ class Link():
         """
         return self.toJSON()
 
+    def __repr__(self):
+        return str(self)
+
 
 def _get_all_data() -> dict[int, str]:
     """
@@ -279,9 +289,9 @@ def _get_all_data() -> dict[int, str]:
             print(f"An Error occurred while fetching the data {cpe.returncode}")
             time.sleep(0.02)
             continue
-    raw_object_data_rjson = dict([(int(item.split("\n")[0]), delim + item) for item in
-                                  data.decode(
-                                      "utf-8").split(delim) if item and not item.startswith("remote ")])
+    raw_object_data_rjson = dict(
+        [(int(item.split("\n")[0]), delim + item) for item in data.decode("utf-8").split(delim) if
+         item and not item.startswith("remote ")])
     # print(raw_object_data_rjson)
     return raw_object_data_rjson
 
@@ -460,7 +470,12 @@ def connect_nodes(source_node: Node | None, sink_node: Node | None, disconnect=F
             f"{'Dis' if disconnect else ''}connecting node {source_node.id} {source_node.get_readable_name()} {'to' if not disconnect else 'from'} {sink_node.id} {sink_node.get_readable_name()}")
         if len(source_node.output_ports) == len(sink_node.input_ports):  # if number of ports match
             # link / unlink the corresponding ports
-            for source_port_id, sink_port_id in zip(source_node.output_ports, sink_node.input_ports):
+            for source_port_id, sink_port_id in zip(
+                    # get the IDs of the ports, but sort them based on the flipped version of their name attribute
+                    # the name attribute is commonly output_FL, output_FR, playback_FL, playback_FR
+                    # sorting based on the reverse of them ensures _FL - _FL and _FR - _FR pairs remain together
+                    [port.id for port in sorted(source_node.output_ports.values(), key=lambda item: item.name[::-1])],
+                    [port.id for port in sorted(sink_node.input_ports.values(), key=lambda item: item.name[::-1])]):
                 _pw_link(source_port_id=source_port_id, sink_port_id=sink_port_id, disconnect=disconnect)
             return True
         else:
