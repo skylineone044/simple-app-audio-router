@@ -1,10 +1,40 @@
 import sys
 
-from PyQt6 import uic, QtCore
-from PyQt6.QtWidgets import QApplication, QMainWindow, QStyleFactory
+try:
+    from PyQt6 import uic, QtCore
+    from PyQt6.QtWidgets import QApplication, QMainWindow, QStyleFactory
+except ImportError or ModuleNotFoundError as ie:
+    print(ie)
+    print("Cannot import PyQT6, exiting...")
+    print("Please install PyQT6 using your system's package manager.")
+    exit(1)
 
 import pw_interface
 import widgets
+
+# Show error popup if not running on pipewire
+if not pw_interface.check_sound_server():
+    from PyQt6.QtWidgets import QDialog
+
+
+    class NoPipeWireWarningDialog(QDialog):
+        """
+        Error popup to inform the user pipewire is not running
+        it loads the ui from "NoPipewireDialog.ui"
+        """
+
+        def __init__(self):
+            super().__init__()
+            uic.loadUi("NoPipewireDialog.ui", self)
+            self.setWindowTitle("Pipewire not found")
+
+
+    warning_dialog = QApplication(sys.argv)
+    mess = NoPipeWireWarningDialog()
+
+    mess.show()
+    mess.exec()
+    exit(2)
 
 
 class MainWindow(QMainWindow):

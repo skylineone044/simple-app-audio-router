@@ -9,6 +9,22 @@ NODE_APP_NAME_BLACKLIST = ("Plasma PA", "com.github.wwmm.easyeffects", "PulseAud
 
 NODE_NAME_BLACKLIST = ("Midi-Bridge")
 
+def check_sound_server() -> bool:
+    """
+    Check what sound server the system is using, and warn the user if it is not pipewire
+
+    :return: True if the detected sound server is pipewire, False otherwise
+    """
+    pactl_info: str = subprocess.check_output(shlex.split("pactl info")).decode("utf-8")
+    for line in pactl_info.split("\n"):
+        if line.startswith("Server Name: "):
+            if "PipeWire" in line:
+                print("Running on pipwwire")
+                return True
+            else:
+                print(f"Running on {':'.join(line.split(':')[1:])}")
+                return False
+
 
 class VirtualSink():
     """
