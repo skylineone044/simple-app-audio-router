@@ -1,0 +1,11 @@
+{
+  "NODE_APP_NAME_BLACKLIST": [
+    "Plasma PA",
+    "com.github.wwmm.easyeffects",
+    "PulseAudio Volume Control"
+  ],
+  "NODE_NAME_BLACKLIST": [
+    "Midi-Bridge"
+  ]
+}
+
