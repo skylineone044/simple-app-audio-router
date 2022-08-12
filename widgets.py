@@ -108,12 +108,14 @@ class ComboBox(QComboBox):
             if self.last_selected == " ":  # No node was connected previously
                 # print("last was empty")
                 self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]  # get new node
-                pw_interface.connect_nodes(self.app_node, self.parent_sink_node)  # connect new node to virtual sink
+                if not pw_interface.connect_nodes(self.app_node, self.parent_sink_node):  # connect new node to virtual sink
+                    self.disconnect_app_node()
             else:  # something was selected previously
                 # print("last was not empty")
                 self.disconnect_app_node()  # disconnects the previously selected node
                 self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]  # get new node
-                pw_interface.connect_nodes(self.app_node, self.parent_sink_node)  # connect new node to virtual sink
+                if not pw_interface.connect_nodes(self.app_node, self.parent_sink_node):  # connect new node to virtual sink
+                    self.disconnect_app_node()
 
         self.last_selected = new_selection  # update last selection to the current one
 
@@ -123,8 +125,11 @@ class ComboBox(QComboBox):
 
         :return: None
         """
-        pw_interface.disconnect_nodes(self.app_node, self.parent_sink_node)
+        if self.app_node:
+            pw_interface.disconnect_nodes(self.app_node, self.parent_sink_node)
         self.app_node = None
+        self.last_selected = " "
+        self.setCurrentText(" ")
 
     def wheelEvent(self, *args, **kwargs):
         """

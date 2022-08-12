@@ -437,14 +437,14 @@ class NodeManager():
                 _pw_link(link_id=link_id, disconnect=True)  # disconnect the link
 
 
-def connect_nodes(source_node: Node | None, sink_node: Node | None, disconnect=False) -> None:
+def connect_nodes(source_node: Node | None, sink_node: Node | None, disconnect=False) -> bool:
     """
     Connect or disconnect the ports of two nodes, if the number of their ports match
 
     :param source_node: Node the links go from
     :param sink_node: Node the links go to
     :param disconnect: if true the nodes will be disconnected, else connected, default: False
-    :return: None
+    :return: True if the nodes could be connected / disconnected, False otherwise
     """
 
     if source_node and sink_node:  # if both nodes exist and not None
@@ -454,12 +454,15 @@ def connect_nodes(source_node: Node | None, sink_node: Node | None, disconnect=F
             # link / unlink the corresponding ports
             for source_port_id, sink_port_id in zip(source_node.output_ports, sink_node.input_ports):
                 _pw_link(source_port_id=source_port_id, sink_port_id=sink_port_id, disconnect=disconnect)
+            return True
         else:
             print(
                 f"Cannot {'Dis' if disconnect else ''}connect node {source_node} {'to' if not disconnect else 'from'} {sink_node.id} {sink_node.get_readable_name()}: Their port numbers do not match: {len(source_node.output_ports)} : {len(sink_node.input_ports)}")
+            return False
     else:
         print(
             f"Cannot {'Dis' if disconnect else ''}connect node {source_node} {'to' if not disconnect else 'from'} {sink_node.id} {sink_node.get_readable_name()}")
+        return False
 
 
 def disconnect_nodes(source_node: Node | None, sink_node: Node | None) -> None:
