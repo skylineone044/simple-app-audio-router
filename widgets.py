@@ -1,7 +1,56 @@
 from PyQt6 import uic, QtCore
-from PyQt6.QtWidgets import QComboBox, QWidget, QHBoxLayout, QFrame, QPushButton
+from PyQt6.QtWidgets import QMainWindow, QComboBox, QWidget, QHBoxLayout, QFrame, QPushButton, QDialog
 
 import pw_interface
+
+
+class NoPipeWireWarningDialog(QDialog):
+    """
+    Error popup to inform the user pipewire is not running
+    it loads the ui from "NoPipewireDialog.ui"
+    """
+
+    def __init__(self):
+        super().__init__()
+        uic.loadUi("NoPipewireDialog.ui", self)
+        self.setWindowTitle("Pipewire not found")
+
+
+class MainWindow(QMainWindow):
+    """
+    MainWindow: The main window where all the other widgets are displayed in
+    """
+
+    def __init__(self, virtual_sink_manager: pw_interface.VirtualSinkManager = None,
+                 node_manager: pw_interface.NodeManager = None):
+        """
+        Crates a new Mainwindow
+
+        :param virtual_sink_manager: the VirtualSinkManager instance that will manage the virtual loopback devices
+        :param node_manager: the NodeManager instance that will handle listing, connecting and disconnecting all the
+        right nodes
+        """
+        super().__init__()
+        uic.loadUi("MainWindow.ui", self)  # Load the "MainWindow.ui" file, which was made using QT Designer
+
+        self.setWindowTitle("Simple App Audio Router")
+        self.routerWidgets = []  # Store all the routeWidgets that are displayed
+
+        self.virtual_sink_manager = virtual_sink_manager
+        self.node_manager = node_manager
+
+        # the button that adds one more routeWidget ot the window
+        self.addMoreOutputsButton.clicked.connect(self.add_router_widget)
+
+    def add_router_widget(self) -> None:
+        """
+        Add a new RouteWidget instance to the self.routeWidgets list, and add it to the mainWindow's output_list
+        widget to be displayed
+
+        :return: None
+        """
+        self.routerWidgets.append(RouteWidget(self.scrollArea, self.virtual_sink_manager, self.node_manager))
+        self.output_list.addWidget(self.routerWidgets[-1], alignment=QtCore.Qt.AlignmentFlag.AlignTop)
 
 
 class ComboBox(QComboBox):

@@ -12,58 +12,16 @@ except ImportError or ModuleNotFoundError as ie:
 import pw_interface
 import widgets
 
+APP = QApplication(sys.argv)  # the main app instance
+
 # Show error popup if not running on pipewire
 if not pw_interface.check_sound_server():
-    from PyQt6.QtWidgets import QDialog
-
-
-    class NoPipeWireWarningDialog(QDialog):
-        """
-        Error popup to inform the user pipewire is not running
-        it loads the ui from "NoPipewireDialog.ui"
-        """
-
-        def __init__(self):
-            super().__init__()
-            uic.loadUi("NoPipewireDialog.ui", self)
-            self.setWindowTitle("Pipewire not found")
-
-
-    warning_dialog = QApplication(sys.argv)
-    mess = NoPipeWireWarningDialog()
+    mess = widgets.NoPipeWireWarningDialog()
 
     mess.show()
     mess.exec()
     exit(2)
 
-
-class MainWindow(QMainWindow):
-    """
-    MainWindow: The main window where all the other widgets are displayed in
-    """
-
-    def __init__(self):
-        super().__init__()
-        uic.loadUi("MainWindow.ui", self)  # Load the "MainWindow.ui" file, which was made using QT Designer
-
-        self.setWindowTitle("Simple App Audio Router")
-        self.routerWidgets = []  # Store all the routeWidgets that are displayed
-
-        # the button that adds one more routeWidget ot the window
-        self.addMoreOutputsButton.clicked.connect(self.add_router_widget)
-
-    def add_router_widget(self) -> None:
-        """
-        Add a new RouteWidget instance to the self.routeWidgets list, and add it to the mainWindow's output_list
-        widget to be displayed
-
-        :return: None
-        """
-        self.routerWidgets.append(widgets.RouteWidget(self.scrollArea, VSM, NM))
-        self.output_list.addWidget(self.routerWidgets[-1], alignment=QtCore.Qt.AlignmentFlag.AlignTop)
-
-
-APP = QApplication(sys.argv)  # the main app instance
 
 AVAILABLE_THEMES = QStyleFactory.keys()  # get a list of available themes
 print(f"Available themes: {AVAILABLE_THEMES}")
@@ -80,7 +38,7 @@ VSM = pw_interface.VirtualSinkManager()
 NM = pw_interface.NodeManager()
 
 try:
-    window = MainWindow()
+    window = widgets.MainWindow(VSM, NM)
     window.show()
 
     APP.exec()

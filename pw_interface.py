@@ -2,6 +2,7 @@ import json
 import re
 import shlex
 import subprocess
+import sys
 
 import time
 
@@ -363,8 +364,9 @@ class NodeManager():
         result_node: Node | None = None
         time_increment: float = 0.02
         counter: int = 0
+        max_retries = 20
 
-        while not result_node:
+        while not result_node and counter < max_retries:
             print(f"Getting sink node for: {loopback_virtual_sink.name}")
             counter += 1
             time.sleep(time_increment * counter)  # wait for pipewire to refresh the data
@@ -373,6 +375,10 @@ class NodeManager():
                 # print("loop ", loopback_virtual_sink.name, "node ", node.media_name)
                 if loopback_virtual_sink.name in node.media_name:
                     result_node = node
+
+        if counter >= max_retries:
+            print("Could not find loopback sink node")
+            raise RuntimeError("Could not find loopback sink node")
 
         print(f"Selected {result_node.get_readable_name()} in {counter} tries")
 
