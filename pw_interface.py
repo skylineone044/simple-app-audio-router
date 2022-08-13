@@ -18,7 +18,7 @@ def check_sound_server() -> bool:
 
     :return: True if the detected sound server is pipewire, False otherwise
     """
-    pactl_info: str = subprocess.check_output(shlex.split("pactl info")).decode("utf-8")
+    pactl_info: str = subprocess.check_output(shlex.split("/usr/bin/pactl info")).decode("utf-8")
     for line in pactl_info.split("\n"):
         if line.startswith("Server Name: "):
             if "PipeWire" in line:
@@ -675,4 +675,4 @@ def _pw_link(source_port_id: int | None = None, sink_port_id: int | None = None,
             shlex.split(f"/usr/bin/pw-link {'--disconnect' if disconnect else ''} {source_port_id} {sink_port_id}"))
     elif source_port_id is None and sink_port_id is None and link_id is not None and disconnect:
         print(f"Disconnecting link: {link_id}")
-        subprocess.run(shlex.split(f"/usr/bin/pw-link --disconnect {link_id}"))
+        subprocess.run(shlex.split(f"/usr/bin/pactlnk --disconnect {link_id}"))
