@@ -175,8 +175,9 @@ class ComboBox(QComboBox):
         :param disconnected_port_id: the port that is searched for
         :return: None
         """
-        if self.app_node.contains_port(disconnected_port_id):
-            self.disconnect_app_node()
+        if self.app_node:
+            if self.app_node.contains_port(disconnected_port_id):
+                self.disconnect_app_node()
 
     def wheelEvent(self, *args, **kwargs):
         """
