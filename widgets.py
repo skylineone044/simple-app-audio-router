@@ -8,12 +8,12 @@ import pw_interface
 class NoPipeWireWarningDialog(QDialog):
     """
     Error popup to inform the user pipewire is not running
-    it loads the ui from "NoPipewireDialog.ui"
+    it loads the ui from "ui/NoPipewireDialog.ui"
     """
 
     def __init__(self):
         super().__init__()
-        uic.loadUi("NoPipewireDialog.ui", self)
+        uic.loadUi("ui/NoPipewireDialog.ui", self)
         self.setWindowTitle("Pipewire not found")
 
 
@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
         right nodes
         """
         super().__init__()
-        uic.loadUi("MainWindow.ui", self)  # Load the "MainWindow.ui" file, which was made using QT Designer
+        uic.loadUi("ui/MainWindow.ui", self)  # Load the "ui/MainWindow.ui" file, which was made using QT Designer
 
         self.setWindowTitle("Simple App Audio Router")
         self.routerWidgets: [RouteWidget] = []  # Store all the routeWidgets that are displayed
@@ -224,7 +224,7 @@ class RouteWidget(QWidget):
         :param node_manager: a NodeManager instance that handles loading the app node list, and connecting / disconnecting the app nodes from the virtual sink
         """
         super().__init__()
-        uic.loadUi("RouteWidget.ui", self)  # load the RouteWidget ui from "RouteWidget.ui" created using QT Designer
+        uic.loadUi("ui/RouteWidget.ui", self)  # load the RouteWidget ui from "ui/RouteWidget.ui" created using QT Designer
         self.parent_scrollWidget = scrollWidget
         self.node_manager: pw_interface.NodeManager = node_manager
 
