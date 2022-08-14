@@ -1,4 +1,5 @@
 from PyQt6 import uic, QtCore
+from PyQt6.QtCore import QProcess
 from PyQt6.QtWidgets import QMainWindow, QComboBox, QWidget, QHBoxLayout, QFrame, QPushButton, QDialog
 
 import pw_interface
@@ -34,13 +35,21 @@ class MainWindow(QMainWindow):
         uic.loadUi("MainWindow.ui", self)  # Load the "MainWindow.ui" file, which was made using QT Designer
 
         self.setWindowTitle("Simple App Audio Router")
-        self.routerWidgets = []  # Store all the routeWidgets that are displayed
+        self.routerWidgets: [RouteWidget] = []  # Store all the routeWidgets that are displayed
+        # Store all Comboboxes, so that when the ports that are in the node that is connected to it are removed from
+        # the pipewire graph, the selection of the combobox can be reset to " "
+        self.app_combobox_holder: [[QFrame]] = []
 
         self.virtual_sink_manager = virtual_sink_manager
         self.node_manager = node_manager
 
         # the button that adds one more routeWidget ot the window
         self.addMoreOutputsButton.clicked.connect(self.add_router_widget)
+
+        print("starting monitor process...")
+        self.monitor_proc = QProcess()
+        self.monitor_proc.readyReadStandardOutput.connect(self.monitor_proc_stdout)
+        self.monitor_proc.start("/usr/bin/pw-link", ["--output", "--monitor", "--id"])
 
     def add_router_widget(self) -> None:
         """
@@ -49,8 +58,29 @@ class MainWindow(QMainWindow):
 
         :return: None
         """
-        self.routerWidgets.append(RouteWidget(self.scrollArea, self.virtual_sink_manager, self.node_manager))
+        self.routerWidgets.append(
+            RouteWidget(self.scrollArea, self.virtual_sink_manager, self.node_manager, self.app_combobox_holder))
         self.output_list.addWidget(self.routerWidgets[-1], alignment=QtCore.Qt.AlignmentFlag.AlignTop)
+
+    def monitor_proc_stdout(self) -> None:
+        """
+        Monitor the output of "pw-link --output --monitor --id" so when a port is removed from the pipewire graph,
+        for example when the application that used the port stops playing audio and removed its nodes, the
+        Combobox that had that app selected can be reset
+
+        This function is called by QT in the event loop automatically when new output appears on the stdout of the
+        started pw-link process
+
+        :return: None
+        """
+        data = self.monitor_proc.readAllStandardOutput()
+        stdout = bytes(data).decode("utf8")
+        print(stdout)
+        if stdout.startswith("-"):
+            removed_port_id = int(stdout.split()[1])
+            for frames in self.app_combobox_holder:
+                for frame in frames:
+                    frame.findChild(ComboBox).disconnect_app_node_if_contains_port_id(removed_port_id)
 
 
 class ComboBox(QComboBox):
@@ -108,7 +138,8 @@ class ComboBox(QComboBox):
             if self.last_selected == " ":  # No node was connected previously
                 # print("last was empty")
                 self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]  # get new node
-                if not pw_interface.connect_nodes(self.app_node, self.parent_sink_node):  # connect new node to virtual sink
+                if not pw_interface.connect_nodes(self.app_node,
+                                                  self.parent_sink_node):  # connect new node to virtual sink
                     self.disconnect_app_node()
                 else:
                     self.setCurrentText(new_selection)
@@ -117,7 +148,8 @@ class ComboBox(QComboBox):
                 if self.last_selected != new_selection:
                     self.disconnect_app_node()  # disconnects the previously selected node
                     self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]  # get new node
-                    if not pw_interface.connect_nodes(self.app_node, self.parent_sink_node):  # connect new node to virtual sink
+                    if not pw_interface.connect_nodes(self.app_node,
+                                                      self.parent_sink_node):  # connect new node to virtual sink
                         self.disconnect_app_node()
                     else:
                         self.setCurrentText(new_selection)
@@ -135,6 +167,16 @@ class ComboBox(QComboBox):
         self.app_node = None
         self.last_selected = " "
         self.setCurrentText(" ")
+
+    def disconnect_app_node_if_contains_port_id(self, disconnected_port_id: int) -> None:
+        """
+        Disconnect the node of this combobox if the node contains the port specified in the parameter
+
+        :param disconnected_port_id: the port that is searched for
+        :return: None
+        """
+        if self.app_node.contains_port(disconnected_port_id):
+            self.disconnect_app_node()
 
     def wheelEvent(self, *args, **kwargs):
         """
@@ -173,7 +215,7 @@ class RouteWidget(QWidget):
     """
 
     def __init__(self, scrollWidget=None, virtual_sink_manager: pw_interface.VirtualSinkManager = None,
-                 node_manager: pw_interface.NodeManager = None):
+                 node_manager: pw_interface.NodeManager = None, parent_combobox_holder: [[QFrame]] = None):
         """
         Crates a new RouteWidget
 
@@ -197,6 +239,7 @@ class RouteWidget(QWidget):
         self.app_combobox_vbox_padding: int = 10
 
         self.app_output_comboboxes: [QFrame] = []  # keep track of the app comboboxes in this routeWidget
+        parent_combobox_holder.append(self.app_output_comboboxes)
 
         # wire up the buttons
         self.add_more_apps_btn.clicked.connect(self.add_app_output_combobox)

@@ -180,6 +180,15 @@ class Node():
             elif port.direction == "output":
                 self.output_ports[port.id] = port
 
+    def contains_port(self, port_id: int) -> bool:
+        """
+        Determine if this node contains a port with certain id or not
+
+        :param port_id: the port id which is searched for
+        :return: True if this node has any port if the port id given in the parameter
+        """
+        return port_id in self.input_ports.keys() or port_id in self.output_ports.keys()
+
     def is_source(self) -> bool:
         """
         Determines if this node is a source node or not.
