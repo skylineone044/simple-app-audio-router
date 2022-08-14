@@ -3,6 +3,7 @@ import sys
 try:
     from PyQt6 import uic, QtCore
     from PyQt6.QtWidgets import QApplication, QMainWindow, QStyleFactory
+    from PyQt6.QtGui import QIcon
 except ImportError or ModuleNotFoundError as ie:
     print(ie)
     print("Cannot import PyQT6, exiting...")
@@ -13,6 +14,7 @@ import pw_interface
 import widgets
 
 APP = QApplication(sys.argv)  # the main app instance
+APP.setWindowIcon(QIcon("media/icon_round_96dpi.png"))
 
 # Show error popup if not running on pipewire
 if not pw_interface.check_sound_server():
