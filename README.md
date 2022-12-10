@@ -25,11 +25,11 @@ by default
 - The left side shows dropdowns in which apps can be selected that are currently outputting audio
 - Using the `Add app`  button, more apps can be selected
 - Each selected app's audio is routed to a virtual loopback device, the name of which can be seen on the right
+- On the right you can also select what app to route the output of the virtual audio device
 - To each virtual sink any number of apps can be routed
 - There can be any number of virtual loopback devices
 
-I recommend using a tool suck as `pavucontrol` to route the output of the virtual loopback devices to the input of a
-desired app, such as OBS; and using an app such as `qpwgraph` or `helvum` to monitor what changes are being made to the
+I recommend using an app such as `qpwgraph` or `helvum` to monitor what changes are being made to the
 pipewire graph
 
 ## Dependencies
@@ -39,5 +39,5 @@ pipewire graph
 - pipewire
 - pipewire-pulse
 - pipewire-session-manager (WirePlumber is recommended)
- 
+
 If pipewire is not the default please consult your distro's instructions for installing pipewire
