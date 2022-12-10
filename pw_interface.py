@@ -528,11 +528,11 @@ def disconnect_all_inputs(node: Node, node_manager: NodeManager):
     :param node: node which will have its inputs disconnected
     :param node_manager: a NodeManager instance storing all the links
     """
-    print(f"Disconnecting all inputs from: {node}")
+    print(f"Disconnecting all inputs from: {node.get_readable_name()}")
     for link_id, link in node_manager.links.items():
         # print(f"link: {link}")
         if link.input_port_id in node.input_ports.keys():
-            print(f"removing link: {link}")
+            print(f"removing link with id: {link.id}")
             _pw_link(link.output_port_id, link.input_port_id, disconnect=True)
 
 
