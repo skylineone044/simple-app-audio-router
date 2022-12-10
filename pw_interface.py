@@ -40,7 +40,7 @@ class VirtualSink():
         """
         self.process = subprocess.Popen(shlex.split(  # creates new virtual sink as a subprocess
             "/usr/bin/pw-loopback -m '[ FL FR]' --capture-props='media.class=Audio/Sink node.name=simple-app-audio-router-virtual-sink'"))
-        self.name = f"loopback-{self.process.pid}-18"  # the name is always "loopback-pid-18"
+        self.name = f"/usr/bin/pw-loopback-{self.process.pid}"  # the name is always "/usr/bin/pw-loopback-<PID>"
         print(f"Created Virtual Sink: {self.name}")
 
     def _remove(self) -> None:
