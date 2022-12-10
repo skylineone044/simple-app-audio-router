@@ -94,7 +94,8 @@ class ComboBox(QComboBox):
     popupAboutToBeShown = QtCore.pyqtSignal(name="popupAboutToBeShown")
 
     def __init__(self, scrollWidget=None, node_manager: pw_interface.NodeManager = None,
-                 app_node: pw_interface.Node = None, parent_sink_node: pw_interface.Node = None, parent=None):
+                 app_node: pw_interface.Node = None, parent_sink_node: pw_interface.Node = None, parent=None,
+                 isAppSourceCB=True):
         """
         Creates a new Combobox
 
@@ -115,6 +116,7 @@ class ComboBox(QComboBox):
 
         self.last_selected: str = " "  # when the combobox is created, no app is selected by defualt
         self.activated.connect(self.on_activated)
+        self.isAppSourceCB = isAppSourceCB
 
     def on_activated(self) -> None:
         """
@@ -137,9 +139,13 @@ class ComboBox(QComboBox):
             new_selection_node_id: int = int(new_selection.split(":")[0])
             if self.last_selected == " ":  # No node was connected previously
                 # print("last was empty")
-                self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]  # get new node
-                if not pw_interface.connect_nodes(self.app_node,
-                                                  self.parent_sink_node):  # connect new node to virtual sink
+                self.app_node = self.node_manager.get_nodes("Source" if self.isAppSourceCB else "Sink")[
+                    new_selection_node_id]  # get new node
+                if not pw_interface.connect_nodes_replace_connection(self.app_node,
+                                                                     self.parent_sink_node,
+                                                                     self.node_manager,
+                                                                     reverse_order=not self.isAppSourceCB,
+                                                                     replace_connection=not self.isAppSourceCB):  # connect new node to virtual sink
                     self.disconnect_app_node()
                 else:
                     self.setCurrentText(new_selection)
@@ -147,9 +153,13 @@ class ComboBox(QComboBox):
                 # print("last was not empty")
                 if self.last_selected != new_selection:
                     self.disconnect_app_node()  # disconnects the previously selected node
-                    self.app_node = self.node_manager.get_nodes("Source")[new_selection_node_id]  # get new node
-                    if not pw_interface.connect_nodes(self.app_node,
-                                                      self.parent_sink_node):  # connect new node to virtual sink
+                    self.app_node = self.node_manager.get_nodes("Source" if self.isAppSourceCB else "Sink")[
+                        new_selection_node_id]  # get new node
+                    if not pw_interface.connect_nodes_replace_connection(self.app_node,
+                                                                         self.parent_sink_node,
+                                                                         self.node_manager,
+                                                                         reverse_order=not self.isAppSourceCB,
+                                                                         replace_connection=not self.isAppSourceCB):  # connect new node to virtual sink
                         self.disconnect_app_node()
                     else:
                         self.setCurrentText(new_selection)
@@ -162,6 +172,8 @@ class ComboBox(QComboBox):
 
         :return: None
         """
+        if not self.isAppSourceCB and self.app_node:
+            pw_interface.disconnect_all_inputs(self.app_node, self.node_manager)
         if self.app_node:
             pw_interface.disconnect_nodes(self.app_node, self.parent_sink_node)
         self.app_node = None
@@ -225,7 +237,8 @@ class RouteWidget(QWidget):
         :param node_manager: a NodeManager instance that handles loading the app node list, and connecting / disconnecting the app nodes from the virtual sink
         """
         super().__init__()
-        uic.loadUi("ui/RouteWidget.ui", self)  # load the RouteWidget ui from "ui/RouteWidget.ui" created using QT Designer
+        uic.loadUi("ui/RouteWidget.ui",
+                   self)  # load the RouteWidget ui from "ui/RouteWidget.ui" created using QT Designer
         self.parent_scrollWidget = scrollWidget
         self.node_manager: pw_interface.NodeManager = node_manager
 
@@ -238,6 +251,7 @@ class RouteWidget(QWidget):
         # values for adjusting the height of the Combobox Widget's height currently
         self.app_combobox_height: int = 32
         self.app_combobox_vbox_padding: int = 10
+        self.routeWidget_min_height = 120
 
         self.app_output_comboboxes: [QFrame] = []  # keep track of the app comboboxes in this routeWidget
         parent_combobox_holder.append(self.app_output_comboboxes)
@@ -247,11 +261,19 @@ class RouteWidget(QWidget):
         self.remove_sink_button.clicked.connect(self.remove)
 
         # get the node of the virtual sink into which the apps are connected in Combobox.on_activated()
-        self.output_sink_node: pw_interface.Node = node_manager.get_loopback_sink_node(self.virtual_sink)
+        self.output_sink_node: pw_interface.Node = node_manager.get_loopback_node(self.virtual_sink)
+        self.output_source_node: pw_interface.Node = node_manager.get_loopback_node(self.virtual_sink, "Source")
         # self.app_nodes: dict[int, pw_interface.Node] = {}
 
         # add the single default ComboBox
         self.add_app_output_combobox()
+
+        # add target sink combobox
+        self.targetSinkComboBox = ComboBox(scrollWidget=self.parent_scrollWidget, node_manager=self.node_manager,
+                                           app_node=None, parent_sink_node=self.output_source_node, isAppSourceCB=False)
+        self.targetSinkComboBox.popupAboutToBeShown.connect(
+            lambda: self.update_app_selection_combobox_items(self.targetSinkComboBox))
+        self.targetCBholder.addWidget(self.targetSinkComboBox)
 
     def update_app_selection_combobox_items(self, cb: ComboBox) -> None:
         """
@@ -265,11 +287,13 @@ class RouteWidget(QWidget):
         # add the readable node names to the ComboBox's list, as well as a "no app selected" item: " "
         # while excluding nodes that are selected in other comboboxes in the same routeWidget
         cb.addItems([" "] + [f"{node_id}: {node.get_readable_name()}" for node_id, node in
-                             sorted(self.node_manager.get_nodes("Source").items(),
+                             sorted(self.node_manager.get_nodes("Source" if cb.isAppSourceCB else "Sink").items(),
                                     key=lambda node: node[1].get_readable_name().lower())
-                             if node.id not in [frame.findChild(ComboBox).app_node.id for frame in
-                                                self.app_output_comboboxes if
-                                                frame.findChild(ComboBox).app_node is not None]])
+                             if
+                             (not cb.isAppSourceCB) or node.id not in [frame.findChild(ComboBox).app_node.id for frame
+                                                                       in
+                                                                       self.app_output_comboboxes if
+                                                                       frame.findChild(ComboBox).app_node is not None]])
 
     def remove_app_output_combobox(self, cb_frame: QFrame) -> None:
         """
@@ -287,7 +311,8 @@ class RouteWidget(QWidget):
         self.app_list.setFixedHeight(
             len(self.app_output_comboboxes) * self.app_combobox_height + self.app_combobox_vbox_padding)
         self.setFixedHeight(
-            max(len(self.app_output_comboboxes) * self.app_combobox_height + 2 * self.app_combobox_vbox_padding, 100))
+            max(len(self.app_output_comboboxes) * self.app_combobox_height + 2 * self.app_combobox_vbox_padding,
+                self.routeWidget_min_height))
 
     def add_app_output_combobox(self) -> None:
         """
@@ -330,7 +355,8 @@ class RouteWidget(QWidget):
         self.app_list.setFixedHeight(
             len(self.app_output_comboboxes) * self.app_combobox_height + self.app_combobox_vbox_padding)
         self.setFixedHeight(
-            max(len(self.app_output_comboboxes) * self.app_combobox_height + 2 * self.app_combobox_vbox_padding, 100))
+            max(len(self.app_output_comboboxes) * self.app_combobox_height + 2 * self.app_combobox_vbox_padding,
+                self.routeWidget_min_height))
 
     def remove(self) -> None:
         """

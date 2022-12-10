@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>810</width>
-    <height>80</height>
+    <height>120</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="minimumSize">
    <size>
     <width>810</width>
-    <height>80</height>
+    <height>120</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -28,8 +28,8 @@
   <widget class="QPushButton" name="remove_sink_button">
    <property name="geometry">
     <rect>
-     <x>745</x>
-     <y>50</y>
+     <x>740</x>
+     <y>90</y>
      <width>60</width>
      <height>26</height>
     </rect>
@@ -79,7 +79,7 @@
    <property name="geometry">
     <rect>
      <x>500</x>
-     <y>50</y>
+     <y>90</y>
      <width>90</width>
      <height>26</height>
     </rect>
@@ -121,6 +121,17 @@
      </layout>
     </item>
    </layout>
+  </widget>
+  <widget class="QWidget" name="horizontalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>500</x>
+     <y>50</y>
+     <width>301</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="targetCBholder"/>
   </widget>
  </widget>
  <resources/>

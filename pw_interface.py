@@ -381,13 +381,16 @@ class NodeManager():
 
         return target_nodes
 
-    def get_loopback_sink_node(self, loopback_virtual_sink: VirtualSink) -> Node:
+    def get_loopback_node(self, loopback_virtual_sink: VirtualSink, node_type="Sink") -> Node:
         """
         get the sink node of the desired virtual sink
 
         :param loopback_virtual_sink: A VirtualSink instance for getting the corresponding sink node
         :return: a Node object that corresponds to the VirtualSink given in the parameter
         """
+        allowed_types = ("Sink", "Source", "Monitor")
+        if node_type not in allowed_types:
+            raise ValueError(f"Invalid argument: {node_type} Must be one of: {allowed_types}")
         # retry until the node is found, because piprwire does not always refresh the data quickly enough between
         # creating the loopback device and the calling of this function
         result_node: Node | None = None
@@ -400,14 +403,14 @@ class NodeManager():
             counter += 1
             time.sleep(time_increment * counter)  # wait for pipewire to refresh the data
             self.update()  # request and load the data
-            for node in self.get_nodes("Sink").values():  # search for the correct Sink node
+            for node in self.get_nodes(node_type).values():  # search for the correct Sink node
                 # print("loop ", loopback_virtual_sink.name, "node ", node.media_name)
                 if loopback_virtual_sink.name in node.media_name:
                     result_node = node
 
         if counter >= max_retries:
-            print("Could not find loopback sink node")
-            raise RuntimeError("Could not find loopback sink node")
+            print(f"Could not find loopback {node_type} node")
+            raise RuntimeError(f"Could not find loopback {node_type} node")
 
         print(f"Selected {result_node.get_readable_name()} in {counter} tries")
 
@@ -464,7 +467,7 @@ class NodeManager():
                 _pw_link(link_id=link_id, disconnect=True)  # disconnect the link
 
 
-def connect_nodes(source_node: Node | None, sink_node: Node | None, disconnect=False) -> bool:
+def connect_nodes(source_node: Node | None, sink_node: Node | None, disconnect=False, reverse_order=False) -> bool:
     """
     Connect or disconnect the ports of two nodes, if the number of their ports match
 
@@ -473,6 +476,8 @@ def connect_nodes(source_node: Node | None, sink_node: Node | None, disconnect=F
     :param disconnect: if true the nodes will be disconnected, else connected, default: False
     :return: True if the nodes could be connected / disconnected, False otherwise
     """
+    if reverse_order:
+        source_node, sink_node = sink_node, source_node
 
     if source_node and sink_node:  # if both nodes exist and not None
         print(
@@ -495,6 +500,25 @@ def connect_nodes(source_node: Node | None, sink_node: Node | None, disconnect=F
         print(
             f"Cannot {'Dis' if disconnect else ''}connect node {source_node} {'to' if not disconnect else 'from'} {sink_node.id} {sink_node.get_readable_name()}")
         return False
+
+
+def connect_nodes_replace_connection(source_node: Node | None, sink_node: Node | None, node_manager: NodeManager,
+                                     disconnect=False, reverse_order=False, replace_connection=False) -> bool:
+    if reverse_order:
+        source_node, sink_node = sink_node, source_node
+
+    if replace_connection:
+        disconnect_all_inputs(sink_node, node_manager=node_manager)
+    return connect_nodes(source_node, sink_node)
+
+
+def disconnect_all_inputs(node: Node, node_manager: NodeManager):
+    print(f"Disconnecting all inputs from: {node}")
+    for link_id, link in node_manager.links.items():
+        # print(f"link: {link}")
+        if link.input_port_id in node.input_ports.keys():
+            print(f"removing link: {link}")
+            _pw_link(link.output_port_id, link.input_port_id, disconnect=True)
 
 
 def disconnect_nodes(source_node: Node | None, sink_node: Node | None) -> None:
