@@ -471,6 +471,7 @@ def connect_nodes(source_node: Node | None, sink_node: Node | None, disconnect=F
     """
     Connect or disconnect the ports of two nodes, if the number of their ports match
 
+    :param reverse_order: whether to reverse the order of the two input nodes
     :param source_node: Node the links go from
     :param sink_node: Node the links go to
     :param disconnect: if true the nodes will be disconnected, else connected, default: False
@@ -503,7 +504,16 @@ def connect_nodes(source_node: Node | None, sink_node: Node | None, disconnect=F
 
 
 def connect_nodes_replace_connection(source_node: Node | None, sink_node: Node | None, node_manager: NodeManager,
-                                     disconnect=False, reverse_order=False, replace_connection=False) -> bool:
+                                     reverse_order=False, replace_connection=False) -> bool:
+    """
+    Connect two nodes, while disconnecting all connections going to the input of the sink node
+    :param source_node: the node with the outputs ports
+    :param sink_node: the node which will have all its connections removed, and replaced with connections to the source node
+    :param node_manager: a NodeManager instance storing the Links
+    :param reverse_order: whether to reverse the order of the two nodes
+    :param replace_connection: whether to actually replace the connections, or just behave like the connect_nodes function
+    :return:
+    """
     if reverse_order:
         source_node, sink_node = sink_node, source_node
 
@@ -513,6 +523,11 @@ def connect_nodes_replace_connection(source_node: Node | None, sink_node: Node |
 
 
 def disconnect_all_inputs(node: Node, node_manager: NodeManager):
+    """
+    Disconnect all links from a node's input side
+    :param node: node which will have its inputs disconnected
+    :param node_manager: a NodeManager instance storing all the links
+    """
     print(f"Disconnecting all inputs from: {node}")
     for link_id, link in node_manager.links.items():
         # print(f"link: {link}")
