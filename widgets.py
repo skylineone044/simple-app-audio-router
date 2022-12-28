@@ -36,9 +36,6 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Simple App Audio Router")
         self.routerWidgets: [RouteWidget] = []  # Store all the routeWidgets that are displayed
-        # Store all Comboboxes, so that when the ports that are in the node that is connected to it are removed from
-        # the pipewire graph, the selection of the combobox can be reset to " "
-        self.app_combobox_holder: [[QFrame]] = []
 
         self.virtual_sink_manager = virtual_sink_manager
         self.node_manager = node_manager
@@ -59,7 +56,7 @@ class MainWindow(QMainWindow):
         :return: None
         """
         self.routerWidgets.append(
-            RouteWidget(self.scrollArea, self.virtual_sink_manager, self.node_manager, self.app_combobox_holder))
+            RouteWidget(self.scrollArea, self.virtual_sink_manager, self.node_manager))
         self.output_list.addWidget(self.routerWidgets[-1], alignment=QtCore.Qt.AlignmentFlag.AlignTop)
 
     def monitor_proc_stdout(self) -> None:
@@ -76,11 +73,12 @@ class MainWindow(QMainWindow):
         data = self.monitor_proc.readAllStandardOutput()
         stdout = bytes(data).decode("utf8")
         print(stdout)
-        if stdout.startswith("-"):
-            removed_port_id = int(stdout.split()[1])
-            for frames in self.app_combobox_holder:
-                for frame in frames:
-                    frame.findChild(ComboBox).disconnect_app_node_if_contains_port_id(removed_port_id)
+        for line in stdout.split("\n"):
+            if line.startswith("-"):
+                removed_port_id = int(line.split()[1])
+                for route_widget in self.routerWidgets:
+                    for cb in route_widget.findChildren(ComboBox):
+                        cb.disconnect_app_node_if_contains_port_id(removed_port_id)
 
 
 class ComboBox(QComboBox):
@@ -118,6 +116,20 @@ class ComboBox(QComboBox):
         self.activated.connect(self.on_activated)
         self.isAppSourceCB = isAppSourceCB
 
+    def set_connection(self, new_selection_node_id, new_selection):
+        # get new node
+        self.app_node = self.node_manager.get_nodes("Source" if self.isAppSourceCB else "Sink")[new_selection_node_id]
+
+        # connect new node to virtual sink
+        if pw_interface.connect_nodes_replace_connection(self.app_node,
+                                                         self.parent_sink_node,
+                                                         self.node_manager,
+                                                         reverse_order=not self.isAppSourceCB,
+                                                         replace_connection=not self.isAppSourceCB):
+            self.setCurrentText(new_selection)
+        else:
+            self.disconnect_app_node()
+
     def on_activated(self) -> None:
         """
         Activated when a new app is selected from the dropdown list
@@ -128,41 +140,18 @@ class ComboBox(QComboBox):
         """
         new_selection: str = str(self.currentText())
         print(f"activating: {new_selection}")
-        if new_selection == " ":  # if the new selection is the "no app" item, then just disconnect the current one
-            self.disconnect_app_node()
-        else:  # if the new selection is an app
+        if new_selection != " ":  # if the new selection is the "no app" item, then just disconnect the current one
             # the node id of the apps is the first number before the colon
             # for example: node_id: node_name (app_name): media_name
             # for example: 999: Firefox (Firefox): AudioStream
             #     but usually the node_name and the app_name are the same,
-            #     so in such cases its shortened to just: 999: Firefox: AudioStream
+            #     so in such cases It's shortened to just: 999: Firefox: AudioStream
             new_selection_node_id: int = int(new_selection.split(":")[0])
-            if self.last_selected == " ":  # No node was connected previously
-                # print("last was empty")
-                self.app_node = self.node_manager.get_nodes("Source" if self.isAppSourceCB else "Sink")[
-                    new_selection_node_id]  # get new node
-                if not pw_interface.connect_nodes_replace_connection(self.app_node,
-                                                                     self.parent_sink_node,
-                                                                     self.node_manager,
-                                                                     reverse_order=not self.isAppSourceCB,
-                                                                     replace_connection=not self.isAppSourceCB):  # connect new node to virtual sink
-                    self.disconnect_app_node()
-                else:
-                    self.setCurrentText(new_selection)
-            else:  # something was selected previously
-                # print("last was not empty")
-                if self.last_selected != new_selection:
-                    self.disconnect_app_node()  # disconnects the previously selected node
-                    self.app_node = self.node_manager.get_nodes("Source" if self.isAppSourceCB else "Sink")[
-                        new_selection_node_id]  # get new node
-                    if not pw_interface.connect_nodes_replace_connection(self.app_node,
-                                                                         self.parent_sink_node,
-                                                                         self.node_manager,
-                                                                         reverse_order=not self.isAppSourceCB,
-                                                                         replace_connection=not self.isAppSourceCB):  # connect new node to virtual sink
-                        self.disconnect_app_node()
-                    else:
-                        self.setCurrentText(new_selection)
+            if self.last_selected != new_selection:
+                self.disconnect_app_node()  # disconnects the previously selected node
+            self.set_connection(new_selection_node_id, new_selection)
+        else:  # if the new selection is an app
+            self.disconnect_app_node()
 
         self.last_selected = new_selection  # update last selection to the current one
 
@@ -172,9 +161,9 @@ class ComboBox(QComboBox):
 
         :return: None
         """
-        if not self.isAppSourceCB and self.app_node:
-            pw_interface.disconnect_all_inputs(self.app_node, self.node_manager)
         if self.app_node:
+            if not self.isAppSourceCB:
+                pw_interface.disconnect_all_inputs(self.app_node, self.node_manager)
             pw_interface.disconnect_nodes(self.app_node, self.parent_sink_node)
         self.app_node = None
         self.last_selected = " "
@@ -187,6 +176,7 @@ class ComboBox(QComboBox):
         :param disconnected_port_id: the port that is searched for
         :return: None
         """
+        print(f"disconnecting {disconnected_port_id=}")
         if self.app_node:
             if self.app_node.contains_port(disconnected_port_id):
                 self.disconnect_app_node()
@@ -228,7 +218,7 @@ class RouteWidget(QWidget):
     """
 
     def __init__(self, scrollWidget=None, virtual_sink_manager: pw_interface.VirtualSinkManager = None,
-                 node_manager: pw_interface.NodeManager = None, parent_combobox_holder: [[QFrame]] = None):
+                 node_manager: pw_interface.NodeManager = None):
         """
         Crates a new RouteWidget
 
@@ -254,7 +244,6 @@ class RouteWidget(QWidget):
         self.routeWidget_min_height = 120
 
         self.app_output_comboboxes: [QFrame] = []  # keep track of the app comboboxes in this routeWidget
-        parent_combobox_holder.append(self.app_output_comboboxes)
 
         # wire up the buttons
         self.add_more_apps_btn.clicked.connect(self.add_app_output_combobox)
